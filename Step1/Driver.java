@@ -21,35 +21,38 @@ public class Driver {
         String tokenText = "";
 
         for(Token t : tokens.getTokens()){
-            switch(t.getType()) {
-                case 1:
-                    tokenText = "INTLITERAL";
-                    break;
-                case 2:
-                    tokenText = "FLOATLITERAL";
-                    break;
-                case 3:
-                    tokenText = "STRINGLITERAL";
-                    break;
-                case 4:
-                    tokenText = "COMMENT";
-                    break;
-                case 5:
-                    tokenText = "KEYWORD";
-                    break;
-                case 6:
-                    tokenText = "OPERATOR";
-                    break;
-                case 7:
-                    tokenText = "WS";
-                    break;
-                case 8:
-                    tokenText = "IDENTIFIER";
-                    break;
+            int tok_type = t.getType();
+            if(tok_type != -1){
+                switch(tok_type) {
+                    case 1:
+                        tokenText = "INTLITERAL";
+                        break;
+                    case 2:
+                        tokenText = "FLOATLITERAL";
+                        break;
+                    case 3:
+                        tokenText = "STRINGLITERAL";
+                        break;
+                    case 4:
+                        tokenText = "COMMENT";
+                        break;
+                    case 5:
+                        tokenText = "KEYWORD";
+                        break;
+                    case 6:
+                        tokenText = "OPERATOR";
+                        break;
+                    case 7:
+                        tokenText = "WS";
+                        break;
+                    case 8:
+                        tokenText = "IDENTIFIER";
+                        break;
+                }
+            
+                System.out.println("Token Type: " + tokenText);
+                System.out.println("Value: "+ t.getText());
             }
-
-            System.out.println("Token Type: " + tokenText);
-            System.out.println("Value: "+ t.getText());
         }
     }
 }
