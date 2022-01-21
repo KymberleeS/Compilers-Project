@@ -5,8 +5,8 @@ import org.antlr.v4.runtime.tree.*;
 public class Driver {
     public static void main(String[] args) throws Exception {
         // create a CharStream that reads from standard input
-        //CharStream input = CharStreams.fromFileName(args[0]);
-        CharStream input = CharStreams.fromFileName("./Step1-TestCases/inputs/fibonacci.micro");
+        CharStream input = CharStreams.fromFileName(args[0]);
+        //CharStream input = CharStreams.fromFileName("./Step1-TestCases/inputs/fibonacci.micro");
 
         // create a lexer that feeds off of input CharStream
         LittleLexer lexer = new LittleLexer(input);
