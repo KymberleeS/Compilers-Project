@@ -9,8 +9,8 @@ public class Driver {
         //CharStream input = CharStreams.fromFileName("./Step1-TestCases/inputs/fibonacci.micro");
 
         // create a lexer that feeds off of input CharStream
-        LittleLexer lexer = new LittleLexer(input);
-
+        //LittleLexer lexer = new LittleLexer(input);
+        Little lexer = new Little(input);
         // create a buffer of tokens pulled from the lexer
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         //System.out.println("program begins");

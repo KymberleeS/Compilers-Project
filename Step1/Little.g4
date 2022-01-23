@@ -1,5 +1,4 @@
-grammar Little;
-r               : ;
+lexer grammar Little;
 INTLITERAL      : [0-9]+;
 FLOATLITERAL    : [0-9]* '.' INTLITERAL;
 STRINGLITERAL   : '"' ~('"')+ '"'; //STRING : '"' .*? '"' ; book definition
