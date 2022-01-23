@@ -2,57 +2,64 @@
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
+// Driver Class
 public class Driver {
     public static void main(String[] args) throws Exception {
         // create a CharStream that reads from standard input
         CharStream input = CharStreams.fromFileName(args[0]);
-        //CharStream input = CharStreams.fromFileName("./Step1-TestCases/inputs/fibonacci.micro");
 
         // create a lexer that feeds off of input CharStream
         //LittleLexer lexer = new LittleLexer(input);
         Little lexer = new Little(input);
         // create a buffer of tokens pulled from the lexer
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        //System.out.println("program begins");
-        tokens.fill(); //since we do not have a parser we need to manually load the tokens
-        //System.out.println("Num of tokens: " + tokens.getTokens().size());
+        tokens.fill();      //since we do not have a parser we need to manually load the tokens
 
-        // initialize variable that
+        // initialize variable that stores token type
         String tokenText = "";
 
-        for(Token t : tokens.getTokens()){
-            int tok_type = t.getType();
-            if(tok_type != -1){
-                switch(tok_type) {
-                    case 1:
-                        tokenText = "INTLITERAL";
-                        break;
-                    case 2:
-                        tokenText = "FLOATLITERAL";
-                        break;
-                    case 3:
-                        tokenText = "STRINGLITERAL";
-                        break;
-                    case 4:
-                        tokenText = "COMMENT";
-                        break;
-                    case 5:
-                        tokenText = "KEYWORD";
-                        break;
-                    case 6:
-                        tokenText = "OPERATOR";
-                        break;
-                    case 7:
-                        tokenText = "WS";
-                        break;
-                    case 8:
-                        tokenText = "IDENTIFIER";
-                        break;
+        // writes program output to a file called ProgramOutput.txt and places it in the current directory
+        try {
+            FileWriter writeToFile = new FileWriter("ProgramOutput.txt");
+
+            for(Token t : tokens.getTokens()) {
+                int tok_type = t.getType();
+                if(tok_type != -1){
+                    switch(tok_type) {
+                        case 1:
+                            tokenText = "INTLITERAL";
+                            break;
+                        case 2:
+                            tokenText = "FLOATLITERAL";
+                            break;
+                        case 3:
+                            tokenText = "STRINGLITERAL";
+                            break;
+                        case 4:
+                            tokenText = "COMMENT";
+                            break;
+                        case 5:
+                            tokenText = "KEYWORD";
+                            break;
+                        case 6:
+                            tokenText = "OPERATOR";
+                            break;
+                        case 7:
+                            tokenText = "WS";
+                            break;
+                        case 8:
+                            tokenText = "IDENTIFIER";
+                            break;
+                    }
+                    writeToFile.write("Token Type: " + tokenText + "\nValue: " + t.getText() + "\n");
                 }
-            
-                System.out.println("Token Type: " + tokenText);
-                System.out.println("Value: "+ t.getText());
             }
+            writeToFile.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
