@@ -7,3 +7,4 @@ KEYWORD         : 'PROGRAM' | 'BEGIN' | 'END' | 'FUNCTION' | 'READ' | 'WRITE' | 
 OPERATOR        : ':=' | '+' | '-' | '*' | '/' | '=' | '!=' | '<' | '>' | '(' | ')' | ';' | ',' | '<=' | '>=';
 WS              : [ \r\n\t]+ -> skip;
 IDENTIFIER      : [a-zA-Z]([a-zA-Z] | [0-9])*;
+ERROR		: .;

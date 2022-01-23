@@ -12,7 +12,6 @@ public class Driver {
         CharStream input = CharStreams.fromFileName(args[0]);
 
         // create a lexer that feeds off of input CharStream
-        //LittleLexer lexer = new LittleLexer(input);
         Little lexer = new Little(input);
         
         // create a buffer of tokens pulled from the lexer
@@ -22,13 +21,13 @@ public class Driver {
         // initialize variable that stores token type
         String tokenText = "";
 
-        // writes program output to a file called ProgramOutput.txt and places it in the current directory
+        // writes program output to a file called TokensOutput.txt and places it in the current directory
         try {
-            FileWriter writeToFile = new FileWriter("ProgramOutput.txt");
+            FileWriter writeToFile = new FileWriter("TokensOutput.txt");
 
             for(Token t : tokens.getTokens()) {
                 int tok_type = t.getType();
-                if(tok_type != -1){
+                if (tok_type != -1){
                     switch(tok_type) {
                         case 1:
                             tokenText = "INTLITERAL";
@@ -54,7 +53,16 @@ public class Driver {
                         case 8:
                             tokenText = "IDENTIFIER";
                             break;
+                        case 9:
+                            // Stops the Lexer if an illegal token is encountered. TokensOutput.txt will be an empty file
+                            System.out.println("\nIllegal Token was Found, Lexer halted.");
+                            System.exit(0);
+                            break;
                     }
+                    // Printing the output in addition to writing the tokens to a file. Printing halts when illegal token found
+                    System.out.println("TokenType: " + tokenText);
+                    System.out.println("Value: " + t.getText());
+
                     writeToFile.write("Token Type: " + tokenText + "\nValue: " + t.getText() + "\n");
                 }
             }
