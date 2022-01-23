@@ -14,6 +14,7 @@ public class Driver {
         // create a lexer that feeds off of input CharStream
         //LittleLexer lexer = new LittleLexer(input);
         Little lexer = new Little(input);
+        
         // create a buffer of tokens pulled from the lexer
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         tokens.fill();      //since we do not have a parser we need to manually load the tokens
