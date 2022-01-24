@@ -55,7 +55,7 @@ public class Driver {
                             break;
                         case 9:
                             // Stops the Lexer if an illegal token is encountered. TokensOutput.txt will be an empty file
-                            System.out.println("\nIllegal Token was Found, Lexer halted.");
+                            System.out.println("\nLexer Error - Illegal Token was Found: " + t.getText());
                             System.exit(0);
                             break;
                     }
