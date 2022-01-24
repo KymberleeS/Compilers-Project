@@ -8,12 +8,6 @@ import java.io.IOException;
 // Driver Class
 public class Driver {
     public static void main(String[] args) throws Exception {
-       /* int size = args.length;
-		if(size != 1){
-			System.out.println("\nERROR: Invalid number of arguments, only one argument accepted.\nNum of args supplied: " + size);
-			System.exit(0);
-		}*/
-		
 		// create a CharStream that reads from standard input
         CharStream input = CharStreams.fromStream(System.in);
 
@@ -60,7 +54,7 @@ public class Driver {
                             tokenText = "IDENTIFIER";
                             break;
                         case 9:
-                            // Stops the Lexer if an illegal token is encountered. TokensOutput.txt will be an empty file
+                            // Stops the Lexer if an illegal token is encountered. TokensOutput.txt will be an EMPTY file
                             System.out.println("\nLexer Error - Illegal Token was Found: " + t.getText());
                             System.exit(0);
                             break;
