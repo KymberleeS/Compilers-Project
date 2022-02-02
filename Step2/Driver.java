@@ -74,7 +74,7 @@ public class Driver {
                             break;
                     }
                     // Printing the output in addition to writing the tokens to a file. Printing halts when illegal token found
-                    System.out.println("TokenType: " + tokenText);
+                    System.out.println("Token Type: " + tokenText);
                     System.out.println("Value: " + t.getText());
 
                     writeToFile.write("Token Type: " + tokenText + "\nValue: " + t.getText() + "\n");
