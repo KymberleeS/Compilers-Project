@@ -16,8 +16,7 @@
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 
 // Driver Class
 public class Driver {
@@ -37,7 +36,7 @@ public class Driver {
 
         // writes program output to a file called TokensOutput.txt and places it in the current directory
         try {
-            FileWriter writeToFile = new FileWriter("TokensOutput.txt");
+            PrintStream writeToFile = new PrintStream("TokensOutput.txt");
 
             for(Token t : tokens.getTokens()) {
                 int tok_type = t.getType();
@@ -74,10 +73,18 @@ public class Driver {
                             break;
                     }
                     // Printing the output in addition to writing the tokens to a file. Printing halts when illegal token found
-                    System.out.println("Token Type: " + tokenText);
-                    System.out.println("Value: " + t.getText());
+                    String output = "Token Type: " + tokenText + "\nValue: " + t.getText() + "\n";
 
-                    writeToFile.write("Token Type: " + tokenText + "\nValue: " + t.getText() + "\n");
+                    // Piping console output to a file
+                    System.setOut(writeToFile);
+                    System.out.print(output);
+
+                    PrintStream consoleOutput = new PrintStream(new FileOutputStream(FileDescriptor.out));
+
+                    System.setOut(consoleOutput);
+                    System.out.print(output);
+
+                    System.out.flush();
                 }
             }
             writeToFile.close();
