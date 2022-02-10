@@ -19,7 +19,7 @@ import org.antlr.v4.runtime.tree.*;
 import java.io.*;
 
 // Driver Class
-public class Driver {
+/*public class Driver {
     public static void main(String[] args) throws Exception {
 		// create a CharStream that reads from standard input
         CharStream input = CharStreams.fromStream(System.in);
@@ -36,7 +36,7 @@ public class Driver {
 
         // writes program output to a file called TokensOutput.txt and places it in the current directory
         try {
-            PrintStream writeToFile = new PrintStream("TokensOutput.txt");
+            PrintStream writeToFile = new PrintStream("ProgramOutput.txt");
 
             for(Token t : tokens.getTokens()) {
                 int tok_type = t.getType();
@@ -92,4 +92,54 @@ public class Driver {
             e.printStackTrace();
         }
     }
+}*/
+
+public class Driver {
+    public static void main(String[] args) throws Exception {
+        // create a CharStream that reads from standard input
+        CharStream input = CharStreams.fromStream(System.in);
+
+        // create a lexer that feeds off of input CharStream
+        LittleLexer littleLexer = new LittleLexer(input);
+
+        // create a buffer of tokens pulled from the lexer
+        CommonTokenStream tokens = new CommonTokenStream(littleLexer);
+
+        // generate parser by creating parser object
+        LittleParser littleParser = new LittleParser(tokens);
+
+        // removing original error listeners to clear console
+        littleParser.removeErrorListeners();
+
+        // starting the parser at the start rule named "program"
+        littleParser.program();
+
+        // string to store program output
+        String programOutput = "";
+
+        if (littleParser.getNumberOfSyntaxErrors() > 0) {
+            programOutput = "Not accepted\n";
+        } else {
+            programOutput = "Accepted\n";
+        }
+
+        // piping console output to a file
+        try {
+            PrintStream consoleOutput = new PrintStream(new FileOutputStream(FileDescriptor.out));
+
+            System.setOut(consoleOutput);
+            System.out.print(programOutput);
+
+            PrintStream writeToFile = new PrintStream("ProgramOutput.txt");
+
+            System.setOut(writeToFile);
+            System.out.print(programOutput);
+
+            System.out.flush();
+            writeToFile.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
+
