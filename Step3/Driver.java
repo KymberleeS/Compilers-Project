@@ -37,7 +37,9 @@ public class Driver {
         littleParser.removeErrorListeners();
 
         // starting the parser at the start rule named "program"
-        littleParser.program();
+        Listener listener = new Listener();
+
+        new ParseTreeWalker().walk(listener, littleParser.program());
 
         // string to store program output
         String programOutput = "";
