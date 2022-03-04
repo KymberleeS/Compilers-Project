@@ -1,13 +1,15 @@
 public class Listener extends LittleBaseListener {
-    /*public void enterProgram(LittleParser.ProgramContext ctx){
-        String id = ctx.id().getText();
-        String body = ctx.pgm_body().getText();
-        System.out.println(body+"\n");
-    }*/
-
     public void enterString_decl(LittleParser.String_declContext ctx) {
-        System.out.println(ctx.id().getText());
-        System.out.println(ctx.str().getText());
+        String[] list = ctx.getText().split("[a-z]+");
+        String type = "";
+
+        for (int i = 0; i < list.length; i++) {
+            if (list[i].equals("STRING")) {
+                type = list[i];
+            }
+        }
+
+        System.out.println("name " + ctx.id().getText() + " type " + type + " value " + ctx.str().getText());
     }
 
     public void enterVar_decl(LittleParser.Var_declContext ctx) {
@@ -18,11 +20,8 @@ public class Listener extends LittleBaseListener {
         String list[]  = id_list.split(",");
 
         for(String str : list){
-            System.out.println("name "+str+" type "+type);
+            System.out.println("name " + str + " type " + type);
         }
     }
 
-    public void enterId_list(LittleParser.Id_listContext ctx) {
-        //System.out.println(ctx.getText());
-    }
 }

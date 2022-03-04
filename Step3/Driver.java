@@ -23,7 +23,7 @@ public class Driver {
     public static void main(String[] args) throws Exception {
         // create a CharStream that reads from standard input
         CharStream input = CharStreams.fromStream(System.in);
-        //CharStream input = CharStreams.fromFileName("./Step3-TestCases/inputs/test5.micro");
+        //CharStream input = CharStreams.fromFileName("./Step3-TestCases/inputs/test21.micro");
 
         // create a lexer that feeds off of input CharStream
         LittleLexer littleLexer = new LittleLexer(input);
