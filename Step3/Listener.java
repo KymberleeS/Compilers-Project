@@ -17,11 +17,18 @@ public class Listener extends LittleBaseListener {
     Hashtable<Integer, Node> globalHT = new Hashtable<>();
     Stack<Hashtable> stackHT = new Stack<>();
 
-    /*public void enterProgram(LittleParser.ProgramContext ctx){
-        /*String id = ctx.id().getText();
-        String body = ctx.pgm_body().getText();
-        System.out.println(body+"\n");*/
-    //*/}
+    public void enterString_decl(LittleParser.String_declContext ctx) {
+        String[] list = ctx.getText().split("[a-z]+");
+        String type = "";
+
+        for (int i = 0; i < list.length; i++) {
+            if (list[i].equals("STRING")) {
+                type = list[i];
+            }
+        }
+
+        System.out.println("name " + ctx.id().getText() + " type " + type + " value " + ctx.str().getText());
+    }
 
     public void enterPgm_body(LittleParser.Pgm_bodyContext ctx) {
         System.out.println("Symbol table GLOBAL");
@@ -39,9 +46,5 @@ public class Listener extends LittleBaseListener {
         for(String str : list){
             System.out.println("name "+str+" type "+type);
         }
-    }
-
-    public void enterId_list(LittleParser.Id_listContext ctx) {
-        //System.out.println(ctx.getText());
     }
 }
