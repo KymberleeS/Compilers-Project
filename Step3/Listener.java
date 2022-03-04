@@ -16,7 +16,7 @@ public class Listener extends LittleBaseListener {
 
     Hashtable<Integer, Node> globalHT = new Hashtable<>();
     Stack<Hashtable> stackHT = new Stack<>();
-
+    
     /*public void enterProgram(LittleParser.ProgramContext ctx){
         /*String id = ctx.id().getText();
         String body = ctx.pgm_body().getText();
