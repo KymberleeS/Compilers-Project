@@ -1,10 +1,32 @@
-public class Listener extends LittleBaseListener {
-    /*public void enterProgram(LittleParser.ProgramContext ctx){
-        String id = ctx.id().getText();
-        String body = ctx.pgm_body().getText();
-        System.out.println(body+"\n");
-    }*/
+import java.io.*;
+import java.util.*;
 
+public class Listener extends LittleBaseListener {
+    class Node {
+        String name;
+        String type;
+        String value;
+
+        Node(String str1, String str2, String str3){
+            name  = str1;
+            type  = str2;
+            value = str3;
+        }
+    }
+
+    Hashtable<Integer, Node> globalHT = new Hashtable<>();
+    Stack<Hashtable> stackHT = new Stack<>();
+
+    /*public void enterProgram(LittleParser.ProgramContext ctx){
+        /*String id = ctx.id().getText();
+        String body = ctx.pgm_body().getText();
+        System.out.println(body+"\n");*/
+    //*/}
+
+    public void enterPgm_body(LittleParser.Pgm_bodyContext ctx) {
+        System.out.println("Symbol table GLOBAL");
+    }
+    
     public void enterString_decl(LittleParser.String_declContext ctx) {
         System.out.println(ctx.id().getText());
         System.out.println(ctx.str().getText());
