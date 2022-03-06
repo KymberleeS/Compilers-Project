@@ -22,8 +22,8 @@ import java.io.*;
 public class Driver {
     public static void main(String[] args) throws Exception {
         // create a CharStream that reads from standard input
-        CharStream input = CharStreams.fromStream(System.in);
-        //CharStream input = CharStreams.fromFileName("./Step3-TestCases/inputs/test21.micro");
+        //CharStream input = CharStreams.fromStream(System.in);
+        CharStream input = CharStreams.fromFileName("./Step3-TestCases/inputs/test20.micro");
 
         // create a lexer that feeds off of input CharStream
         LittleLexer littleLexer = new LittleLexer(input);
@@ -42,8 +42,10 @@ public class Driver {
 
         new ParseTreeWalker().walk(listener, littleParser.program());
 
+        listener.printHashTableValues();
+
         // string to store program output
-        String programOutput = "";
+     /*   String programOutput = "";
 
         if (littleParser.getNumberOfSyntaxErrors() > 0) {
             programOutput = "Not accepted\n";
@@ -67,7 +69,7 @@ public class Driver {
             writeToFile.close();
         } catch(IOException e) {
             e.printStackTrace();
-        }
+        } */
     }
 }
 
