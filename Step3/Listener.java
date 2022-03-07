@@ -71,8 +71,22 @@ public class Listener extends LittleBaseListener {
         String tableName = ctx.id().getText();
         symbolTableNames.add("Symbol table " + tableName);
 
-        //System.out.println(ctx.param_decl_list().getText());
-        //System.out.println(ctx.func_body().decl().getText());
+        String paramRegex = "(INT|FLOAT)|,(INT|FLOAT)";
+
+        String[] var_id = ctx.param_decl_list().getText().replaceFirst(paramRegex, "").split(paramRegex, 0);
+        String[] type = ctx.param_decl_list().getText().split("([a-z]),|([a-z])");
+
+        for(int i = 0; i < var_id.length; i++){
+            if(!functionTable.containsKey(var_id[i])){
+                if (var_id[i].equals("") || type[i].equals("")) {
+                    break;
+                }
+                Node var_decl = new Node(var_id[i], type[i], null);
+                functionTable.put(var_id[i], var_decl);
+            } else {
+                System.out.println("DECLARATION ERROR "+var_id[i]);
+            }
+        }
     }
 
     public void printHashTableValues() {
