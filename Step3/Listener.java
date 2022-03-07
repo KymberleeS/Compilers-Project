@@ -71,20 +71,32 @@ public class Listener extends LittleBaseListener {
         String tableName = ctx.id().getText();
         symbolTableNames.add("Symbol table " + tableName);
 
-        String paramRegex = "(INT|FLOAT)|,(INT|FLOAT)";
+        String idRegex = "(INT|FLOAT|STRING)|,(INT|FLOAT|STRING)";
 
-        String[] var_id = ctx.param_decl_list().getText().replaceFirst(paramRegex, "").split(paramRegex, 0);
-        String[] type = ctx.param_decl_list().getText().split("([a-z]),|([a-z])");
+        String[] tempVar_id = ctx.param_decl_list().getText().replaceFirst(idRegex, "").split(idRegex, 0);
+        String[] tempType = ctx.param_decl_list().getText().split("([a-z]),|([a-z])");
 
-        for(int i = 0; i < var_id.length; i++){
-            if(!functionTable.containsKey(var_id[i])){
-                if (var_id[i].equals("") || type[i].equals("")) {
-                    break;
-                }
-                Node var_decl = new Node(var_id[i], type[i], null);
-                functionTable.put(var_id[i], var_decl);
+        ArrayList<String> var_id = new ArrayList<>();
+        ArrayList<String> type = new ArrayList<>();
+
+        for (int i = 0; i < tempVar_id.length; i++) {
+            if(!(tempVar_id[i].equals(""))) {
+                var_id.add(tempVar_id[i]);
+            }
+        }
+
+        for (int i = 0; i < tempType.length; i++) {
+            if(!(tempType[i].equals(""))) {
+                type.add(tempType[i]);
+            }
+        }
+
+        for(int i = 0; i < var_id.size(); i++){
+            if(!functionTable.containsKey(var_id.get(i))){
+                Node var_decl = new Node(var_id.get(i), type.get(i), null);
+                functionTable.put(var_id.get(i), var_decl);
             } else {
-                System.out.println("DECLARATION ERROR "+var_id[i]);
+                System.out.println("DECLARATION ERROR "+var_id.get(i));
             }
         }
     }
