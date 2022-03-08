@@ -24,6 +24,7 @@ public class Listener extends LittleBaseListener {
     ArrayList<String> symbolTableNames = new ArrayList<>();
     LinkedHashMap<String, Node> globalHT = new LinkedHashMap<>();
     Stack<LinkedHashMap<String, Node>> stackHT = new Stack<>();
+    int scope_cnt = 0;
 
     public void enterString_decl(LittleParser.String_declContext ctx) {
         String[] list = ctx.getText().split("[a-z]+");
@@ -36,6 +37,7 @@ public class Listener extends LittleBaseListener {
         }
 
         Node stringNode = new Node(ctx.id().getText(), type, ctx.str().getText());
+        //System.out.println(stringNode);
         stackHT.peek().put(stringNode.name, stringNode);
     }
 
@@ -100,6 +102,27 @@ public class Listener extends LittleBaseListener {
             }
         }
     }
+    public void exitFunc_decl(LittleParser.Func_declContext ctx) {
+        scope_cnt = 0;
+     }
+    public void enterIf_stmt(LittleParser.If_stmtContext ctx) {
+        LinkedHashMap<String, Node> ifTable  = new LinkedHashMap<>();
+        stackHT.push(ifTable);
+        symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
+     }
+    public void exitIf_stmt(LittleParser.If_stmtContext ctx) { }
+    public void enterElse_part(LittleParser.Else_partContext ctx) {
+        LinkedHashMap<String, Node> elseTable  = new LinkedHashMap<>();
+        stackHT.push(elseTable);
+        symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
+     }
+    public void exitElse_part(LittleParser.Else_partContext ctx) { }
+    public void enterWhile_stmt(LittleParser.While_stmtContext ctx) {
+        LinkedHashMap<String, Node> whileTable  = new LinkedHashMap<>();
+        stackHT.push(whileTable);
+        symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
+     }
+    public void exitWhile_stmt(LittleParser.While_stmtContext ctx) { }
 
     public void printHashTableValues() {
         for (int i = 0; i < stackHT.size(); i++) {
