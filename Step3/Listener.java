@@ -103,7 +103,7 @@ public class Listener extends LittleBaseListener {
         }
     }
     public void exitFunc_decl(LittleParser.Func_declContext ctx) {
-        scope_cnt = 0;
+        //scope_cnt = 0;
      }
     public void enterIf_stmt(LittleParser.If_stmtContext ctx) {
         LinkedHashMap<String, Node> ifTable  = new LinkedHashMap<>();
@@ -111,10 +111,16 @@ public class Listener extends LittleBaseListener {
         symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
      }
     public void exitIf_stmt(LittleParser.If_stmtContext ctx) { }
+
     public void enterElse_part(LittleParser.Else_partContext ctx) {
-        LinkedHashMap<String, Node> elseTable  = new LinkedHashMap<>();
-        stackHT.push(elseTable);
-        symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
+        if(ctx.decl() == null){
+            System.out.println("is null");
+        }
+        else{
+            LinkedHashMap<String, Node> elseTable  = new LinkedHashMap<>();
+            stackHT.push(elseTable);
+            symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
+        }
      }
     public void exitElse_part(LittleParser.Else_partContext ctx) { }
     public void enterWhile_stmt(LittleParser.While_stmtContext ctx) {
