@@ -62,6 +62,7 @@ public class Listener extends LittleBaseListener {
             }
             else{
                System.out.println("DECLARATION ERROR "+str);
+               System.exit(0);
             }
         }
     }
@@ -99,12 +100,15 @@ public class Listener extends LittleBaseListener {
                 functionTable.put(var_id.get(i), var_decl);
             } else {
                 System.out.println("DECLARATION ERROR "+var_id.get(i));
+                System.exit(0);
             }
         }
     }
+
     public void exitFunc_decl(LittleParser.Func_declContext ctx) {
         //scope_cnt = 0;
      }
+
     public void enterIf_stmt(LittleParser.If_stmtContext ctx) {
         LinkedHashMap<String, Node> ifTable  = new LinkedHashMap<>();
         stackHT.push(ifTable);
@@ -122,7 +126,9 @@ public class Listener extends LittleBaseListener {
             symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
         }
      }
+
     public void exitElse_part(LittleParser.Else_partContext ctx) { }
+
     public void enterWhile_stmt(LittleParser.While_stmtContext ctx) {
         LinkedHashMap<String, Node> whileTable  = new LinkedHashMap<>();
         stackHT.push(whileTable);
