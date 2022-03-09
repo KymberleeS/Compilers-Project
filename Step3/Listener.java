@@ -12,7 +12,6 @@
  * @since   3/08/2022
  */
 
-import java.io.*;
 import java.util.*;
 
 public class Listener extends LittleBaseListener {
@@ -29,7 +28,7 @@ public class Listener extends LittleBaseListener {
 
         public String toString() {
             if (value == null) {
-                return "name "+ name + " type " + type;
+                return "name " + name + " type " + type;
             }
             return "name " + name + " type " + type + " value " + value;
         }
@@ -52,22 +51,22 @@ public class Listener extends LittleBaseListener {
 
         //create a node for the string variable
         Node stringNode = new Node(ctx.id().getText(), type, ctx.str().getText());
+
         //put the node into the symbol table who's scope the string variable was
         stackHT.peek().put(stringNode.name, stringNode);
     }
 
     public void enterPgm_body(LittleParser.Pgm_bodyContext ctx) {
         symbolTableNames.add("Symbol table GLOBAL");
+
         //add the global hash table to the stack
         stackHT.push(globalHT);
     }
-    
+
     public void enterVar_decl(LittleParser.Var_declContext ctx) {
         String type    = ctx.var_type().getText();
-        String name    = "placeholder";
         String id_list = ctx.id_list().getText();
-        int    size    = id_list.length();
-        String list[]  = id_list.split(",");
+        String[] list  = id_list.split(",");
         LinkedHashMap<String, Node> current_table = stackHT.peek();
 
         for(String str : list){
@@ -93,18 +92,22 @@ public class Listener extends LittleBaseListener {
 
         String idRegex = "(INT|FLOAT|STRING)|,(INT|FLOAT|STRING)";
 
+        // parsing the parameter declaration list based on regular expressions and storing them into temporary arrays
         String[] tempVar_id = ctx.param_decl_list().getText().replaceFirst(idRegex, "").split(idRegex, 0);
         String[] tempType = ctx.param_decl_list().getText().split("([a-z]),|([a-z])");
 
+        // array to hold needed elements from the temporary arrays
         ArrayList<String> var_id = new ArrayList<>();
         ArrayList<String> type = new ArrayList<>();
 
+        // if a non-empty string, add the variable id to var_id array
         for (int i = 0; i < tempVar_id.length; i++) {
             if(!(tempVar_id[i].equals(""))) {
                 var_id.add(tempVar_id[i]);
             }
         }
 
+        // if a non-empty string, add the variable type to type array
         for (int i = 0; i < tempType.length; i++) {
             if(!(tempType[i].equals(""))) {
                 type.add(tempType[i]);
@@ -112,7 +115,7 @@ public class Listener extends LittleBaseListener {
         }
 
         for(int i = 0; i < var_id.size(); i++){
-            //check to see if variable is already declared; throw error if so
+            // check to see if variable is already declared; throw error if so
             if(!functionTable.containsKey(var_id.get(i))){
                 Node var_decl = new Node(var_id.get(i), type.get(i), null);
                 functionTable.put(var_id.get(i), var_decl);
@@ -130,7 +133,7 @@ public class Listener extends LittleBaseListener {
      }
 
     public void enterElse_part(LittleParser.Else_partContext ctx) {
-        //check to see if there is not an else statement present; if there is add a new BLOCK scope
+        // check to see if there is not an else statement present; if there is add a new BLOCK scope
         if(ctx.decl() != null){
             LinkedHashMap<String, Node> elseTable  = new LinkedHashMap<>();
             stackHT.push(elseTable);
