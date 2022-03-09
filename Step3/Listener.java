@@ -1,3 +1,17 @@
+/**
+ * The Listener.java extends the LittleBaseListener and implements several of
+ * the empty methods pregenerated from ANTLR4. This listener creates a hash table
+ * for each scope of the program and pushes them onto the stack. Within each scope
+ * any variables are added to the scopes hash table, which acts as a symbol table.
+ * The values inserted into the table are stored as nodes which contains three
+ * string variables: name, type, value. The tables are then able to be printed
+ * with the printHashTableValues() method.
+ * 
+ * @author  Kymberlee Sables, Harrison Wine
+ * @version step3
+ * @since   3/08/2022
+ */
+
 import java.io.*;
 import java.util.*;
 
@@ -36,13 +50,15 @@ public class Listener extends LittleBaseListener {
             }
         }
 
+        //create a node for the string variable
         Node stringNode = new Node(ctx.id().getText(), type, ctx.str().getText());
-        //System.out.println(stringNode);
+        //put the node into the symbol table who's scope the string variable was
         stackHT.peek().put(stringNode.name, stringNode);
     }
 
     public void enterPgm_body(LittleParser.Pgm_bodyContext ctx) {
         symbolTableNames.add("Symbol table GLOBAL");
+        //add the global hash table to the stack
         stackHT.push(globalHT);
     }
     
@@ -55,10 +71,11 @@ public class Listener extends LittleBaseListener {
         LinkedHashMap<String, Node> current_table = stackHT.peek();
 
         for(String str : list){
+            //if the hash table does not have the variable already, add it
+            //otherwise throw an error
             if(!current_table.containsKey(str)){
                 Node var_decl = new Node(str, type, null);
                 current_table.put(str, var_decl);
-               // System.out.println("name "+str+" type "+type);
             }
             else{
                System.out.println("DECLARATION ERROR "+str);
@@ -95,6 +112,7 @@ public class Listener extends LittleBaseListener {
         }
 
         for(int i = 0; i < var_id.size(); i++){
+            //check to see if variable is already declared; throw error if so
             if(!functionTable.containsKey(var_id.get(i))){
                 Node var_decl = new Node(var_id.get(i), type.get(i), null);
                 functionTable.put(var_id.get(i), var_decl);
@@ -105,36 +123,26 @@ public class Listener extends LittleBaseListener {
         }
     }
 
-    public void exitFunc_decl(LittleParser.Func_declContext ctx) {
-        //scope_cnt = 0;
-     }
-
     public void enterIf_stmt(LittleParser.If_stmtContext ctx) {
         LinkedHashMap<String, Node> ifTable  = new LinkedHashMap<>();
         stackHT.push(ifTable);
         symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
      }
-    public void exitIf_stmt(LittleParser.If_stmtContext ctx) { }
 
     public void enterElse_part(LittleParser.Else_partContext ctx) {
-        if(ctx.decl() == null){
-            System.out.println("is null");
-        }
-        else{
+        //check to see if there is not an else statement present; if there is add a new BLOCK scope
+        if(ctx.decl() != null){
             LinkedHashMap<String, Node> elseTable  = new LinkedHashMap<>();
             stackHT.push(elseTable);
             symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
         }
      }
 
-    public void exitElse_part(LittleParser.Else_partContext ctx) { }
-
     public void enterWhile_stmt(LittleParser.While_stmtContext ctx) {
         LinkedHashMap<String, Node> whileTable  = new LinkedHashMap<>();
         stackHT.push(whileTable);
         symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
      }
-    public void exitWhile_stmt(LittleParser.While_stmtContext ctx) { }
 
     public void printHashTableValues() {
         for (int i = 0; i < stackHT.size(); i++) {
