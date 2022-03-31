@@ -12,6 +12,7 @@
  * @since   3/08/2022
  */
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Listener extends LittleBaseListener {
@@ -156,6 +157,116 @@ public class Listener extends LittleBaseListener {
                 System.out.println(itr.next().toString());
             }
             System.out.print("\n");
+        }
+    }
+
+
+
+
+
+
+
+
+
+    ArrayList<ASTNode> irCodeList = new ArrayList<>();
+
+    class ASTNode {
+        String value;
+        ASTNode leftChild;
+        ASTNode rightChild;
+
+        ASTNode(String value, ASTNode leftChild, ASTNode rightChild) {
+            this.value = value;
+            this.leftChild = leftChild;
+            this.rightChild = rightChild;
+        }
+
+        ASTNode() {
+
+        }
+
+    }
+
+    int tempRegisterCount = 1;
+
+    public void enterAssign_expr(LittleParser.Assign_exprContext ctx) {
+        ArrayList<String> tempBuildAST = new ArrayList<>();
+        ArrayList<String> buildAST = new ArrayList<>();
+
+        String[] temp;
+        String exprSplitter = "(?<=\\D)|(?=\\D)";
+
+        tempBuildAST.add(ctx.id().getText());
+        tempBuildAST.add(":=");
+
+        temp = ctx.expr().expr_prefix().getText().split(exprSplitter);
+        parserHelper(temp, tempBuildAST);
+
+        temp = ctx.expr().factor().factor_prefix().getText().split(exprSplitter);
+        parserHelper(temp, tempBuildAST);
+
+        temp = ctx.expr().factor().postfix_expr().getText().split(exprSplitter);
+        parserHelper(temp, tempBuildAST);
+
+        for (int i = 0; i < tempBuildAST.size(); i++) {
+            if (tempBuildAST.get(i) != "") {
+                buildAST.add(tempBuildAST.get(i));
+            }
+        }
+
+        for (int i = 0; i < buildAST.size(); i++) {
+            if (buildAST.contains("(") || buildAST.contains(")")) {
+                if (buildAST.get(i).equals("+") || buildAST.get(i).equals("-") || buildAST.get(i).equals("*") ||
+                    buildAST.get(i).equals("/")) {
+                    if (!(buildAST.get(i + 1).equals("("))) {
+                        if (!(buildAST.get(i - 1).equals(")"))) {
+                            System.out.println(buildAST.get(i) + " : parent");
+                            System.out.println(buildAST.get(i - 1) + " : left child");
+                            System.out.println(buildAST.get(i + 1) + " : right child");
+
+                            buildAST.remove(i + 1);
+                            buildAST.remove(i - 1);
+                        }
+                    }
+                }
+            } else {
+                if (buildAST.get(i).equals("+") || buildAST.get(i).equals("-") || buildAST.get(i).equals("*") ||
+                    buildAST.get(i).equals("/")) {
+                        System.out.println(buildAST.get(i) + " : parent");
+                        System.out.println(buildAST.get(i - 1) + " : left child");
+                        System.out.println(buildAST.get(i + 1) + " : right child");
+
+                        buildAST.remove(i + 1);
+                        buildAST.remove(i - 1);
+                } else if (buildAST.size() == 3 && buildAST.get(i).equals(":=")) {
+                    System.out.println(buildAST.get(i) + " : parent");
+                    System.out.println(buildAST.get(i - 1) + " : left child");
+                    System.out.println(buildAST.get(i + 1) + " : right child");
+
+                    buildAST.remove(i + 1);
+                    buildAST.remove(i - 1);
+                }
+            }
+        }
+
+        for (int i = 0; i < buildAST.size(); i++) {
+            if (buildAST.get(i).equals(":=") && buildAST.size() == 3) {
+                System.out.println(buildAST.get(i) + " : parent");
+                System.out.println(buildAST.get(i - 1) + " : left child");
+                System.out.println(buildAST.get(i + 1) + " : right child");
+
+                buildAST.remove(i + 1);
+                buildAST.remove(i - 1);
+            }
+        }
+
+        System.out.print("\n");
+
+    }
+
+    public void parserHelper(String[] temp, ArrayList tempBuildAST) {
+        for (int i = 0; i < temp.length; i++) {
+            tempBuildAST.add(temp[i]);
         }
     }
 }
