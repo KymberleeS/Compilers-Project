@@ -12,7 +12,6 @@
  * @since   3/08/2022
  */
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Listener extends LittleBaseListener {
@@ -194,7 +193,7 @@ public class Listener extends LittleBaseListener {
         ArrayList<String> buildAST = new ArrayList<>();
 
         String[] temp;
-        String exprSplitter = "(?<=\\D)|(?=\\D)";
+        String exprSplitter = "(?<=\\\\d)|(?=\\+)|(?<=\\+)|(?=\\/)|(?<=\\/)|(?=\\*)|(?<=\\*)|(?=\\-)|(?<=\\-)|(?=\\))|((?<=\\)))|(?=\\()|(?<=\\()";
 
         tempBuildAST.add(ctx.id().getText());
         tempBuildAST.add(":=");
@@ -218,15 +217,13 @@ public class Listener extends LittleBaseListener {
             if (buildAST.contains("(") || buildAST.contains(")")) {
                 if (buildAST.get(i).equals("+") || buildAST.get(i).equals("-") || buildAST.get(i).equals("*") ||
                     buildAST.get(i).equals("/")) {
-                    if (!(buildAST.get(i + 1).equals("("))) {
-                        if (!(buildAST.get(i - 1).equals(")"))) {
-                            System.out.println(buildAST.get(i) + " : parent");
-                            System.out.println(buildAST.get(i - 1) + " : left child");
-                            System.out.println(buildAST.get(i + 1) + " : right child");
+                    if (!(buildAST.get(i + 1).equals("(")) && !(buildAST.get(i - 1).equals(")"))) {
+                        System.out.println(buildAST.get(i) + " : parent");
+                        System.out.println(buildAST.get(i - 1) + " : left child");
+                        System.out.println(buildAST.get(i + 1) + " : right child");
 
-                            buildAST.remove(i + 1);
-                            buildAST.remove(i - 1);
-                        }
+                        buildAST.remove(i + 1);
+                        buildAST.remove(i - 1);
                     }
                 }
             } else {
@@ -261,7 +258,6 @@ public class Listener extends LittleBaseListener {
         }
 
         System.out.print("\n");
-
     }
 
     public void parserHelper(String[] temp, ArrayList tempBuildAST) {
