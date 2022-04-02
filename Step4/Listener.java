@@ -166,31 +166,29 @@ public class Listener extends LittleBaseListener {
 
 
 
-
-    ArrayList<ASTNode> irCodeList = new ArrayList<>();
+    ArrayList<ASTNode> astIRNodes = new ArrayList<>();
 
     class ASTNode {
         String value;
         ASTNode leftChild;
         ASTNode rightChild;
+        String irCode;
 
-        ASTNode(String value, ASTNode leftChild, ASTNode rightChild) {
+        ASTNode(String value, ASTNode leftChild, ASTNode rightChild, String irCode) {
             this.value = value;
             this.leftChild = leftChild;
             this.rightChild = rightChild;
+            this.irCode = irCode;
         }
 
-        ASTNode() {
-
+        public String toString() {
+            return value;
         }
-
     }
-
-    int tempRegisterCount = 1;
 
     public void enterAssign_expr(LittleParser.Assign_exprContext ctx) {
         ArrayList<String> tempBuildAST = new ArrayList<>();
-        ArrayList<String> buildAST = new ArrayList<>();
+        ArrayList<ASTNode> buildAST = new ArrayList<>();
 
         String[] temp;
         String exprSplitter = "(?<=\\\\d)|(?=\\+)|(?<=\\+)|(?=\\/)|(?<=\\/)|(?=\\*)|(?<=\\*)|(?=\\-)|(?<=\\-)|(?=\\))|((?<=\\)))|(?=\\()|(?<=\\()";
@@ -209,36 +207,36 @@ public class Listener extends LittleBaseListener {
 
         for (int i = 0; i < tempBuildAST.size(); i++) {
             if (tempBuildAST.get(i) != "") {
-                buildAST.add(tempBuildAST.get(i));
+                buildAST.add(new ASTNode(tempBuildAST.get(i), null, null, null));
             }
         }
 
+        /*   while (!(buildAST.isEmpty())) {
+
+        } */
+
         for (int i = 0; i < buildAST.size(); i++) {
-            if (buildAST.contains("(") || buildAST.contains(")")) {
-                if (buildAST.get(i).equals("+") || buildAST.get(i).equals("-") || buildAST.get(i).equals("*") ||
-                    buildAST.get(i).equals("/")) {
-                    if (!(buildAST.get(i + 1).equals("(")) && !(buildAST.get(i - 1).equals(")"))) {
-                        System.out.println(buildAST.get(i) + " : parent");
-                        System.out.println(buildAST.get(i - 1) + " : left child");
-                        System.out.println(buildAST.get(i + 1) + " : right child");
+            if (containsParentheses(buildAST) == true) {
+                if (buildAST.get(i).value.equals("+") || buildAST.get(i).value.equals("-") || buildAST.get(i).value.equals("*") ||
+                    buildAST.get(i).value.equals("/")) {
+                    if (!(buildAST.get(i + 1).value.equals("(")) && !(buildAST.get(i - 1).value.equals(")"))) {
+                        System.out.println(buildAST.get(i).value + " : parent");
+                        System.out.println(buildAST.get(i - 1).value + " : left child");
+                        System.out.println(buildAST.get(i + 1).value + " : right child");
 
                         buildAST.remove(i + 1);
                         buildAST.remove(i - 1);
                     }
                 }
             } else {
-                if (buildAST.get(i).equals("+") || buildAST.get(i).equals("-") || buildAST.get(i).equals("*") ||
-                    buildAST.get(i).equals("/")) {
-                        System.out.println(buildAST.get(i) + " : parent");
-                        System.out.println(buildAST.get(i - 1) + " : left child");
-                        System.out.println(buildAST.get(i + 1) + " : right child");
+                if (buildAST.get(i).value.equals("+") || buildAST.get(i).value.equals("-") || buildAST.get(i).value.equals("*") ||
+                    buildAST.get(i).value.equals("/")) {
+                        buildASTNode(astIRNodes, buildAST, i);
 
                         buildAST.remove(i + 1);
                         buildAST.remove(i - 1);
-                } else if (buildAST.size() == 3 && buildAST.get(i).equals(":=")) {
-                    System.out.println(buildAST.get(i) + " : parent");
-                    System.out.println(buildAST.get(i - 1) + " : left child");
-                    System.out.println(buildAST.get(i + 1) + " : right child");
+                } else if (buildAST.size() == 3 && buildAST.get(i).value.equals(":=")) {
+                    buildASTNode(astIRNodes, buildAST, i);
 
                     buildAST.remove(i + 1);
                     buildAST.remove(i - 1);
@@ -247,22 +245,80 @@ public class Listener extends LittleBaseListener {
         }
 
         for (int i = 0; i < buildAST.size(); i++) {
-            if (buildAST.get(i).equals(":=") && buildAST.size() == 3) {
-                System.out.println(buildAST.get(i) + " : parent");
-                System.out.println(buildAST.get(i - 1) + " : left child");
-                System.out.println(buildAST.get(i + 1) + " : right child");
+            if (buildAST.get(i).value.equals(":=") && buildAST.size() == 3) {
+                buildASTNode(astIRNodes, buildAST, i);
 
                 buildAST.remove(i + 1);
                 buildAST.remove(i - 1);
             }
         }
 
+        for (int i = 0; i < buildAST.size(); i++) {
+            if (buildAST.size() == 1) {
+                buildAST.remove(i);
+            }
+        }
+
+        for (int i = 0; i < astIRNodes.size(); i++) {
+            if (astIRNodes.get(i).irCode != null) {
+                System.out.println(astIRNodes.get(i).irCode);
+            }
+        }
+
         System.out.print("\n");
     }
 
-    public void parserHelper(String[] temp, ArrayList tempBuildAST) {
+    private void parserHelper(String[] temp, ArrayList tempBuildAST) {
         for (int i = 0; i < temp.length; i++) {
             tempBuildAST.add(temp[i]);
         }
     }
+
+    private boolean containsParentheses(ArrayList<ASTNode> buildAST) {
+        int parenthesesCount = 0;
+
+        for (int i = 0; i < buildAST.size(); i++) {
+            if (buildAST.get(i).value.equals("(") || buildAST.get(i).value.equals(")")) {
+                parenthesesCount++;
+            }
+
+            if (parenthesesCount > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void buildASTNode(ArrayList<ASTNode> astIRNodes, ArrayList<ASTNode> buildAST, int i) {
+        astIRNodes.add(new ASTNode(buildAST.get(i - 1).value, null, null, null));
+        astIRNodes.add(new ASTNode(buildAST.get(i + 1).value, null, null, null));
+
+        buildAST.get(i).leftChild = buildAST.get(i - 1);
+        buildAST.get(i).rightChild = buildAST.get(i + 1);
+
+        switch (buildAST.get(i).value) {
+            case "+":
+                astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
+                        ";ADDI " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T6"));
+                break;
+            case "-":
+                astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
+                        ";SUBI " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T6"));
+                break;
+            case "*":
+                astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
+                        ";MULTI " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T6"));
+                break;
+            case "/":
+                astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
+                        ";DIVI " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T6"));
+                break;
+            case ":=":
+                astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
+                        ";STOREI " + buildAST.get(i).rightChild.value + " $T6"));
+                break;
+        }
+
+    }
+
 }
