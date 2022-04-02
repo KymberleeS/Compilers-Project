@@ -209,55 +209,51 @@ public class Listener extends LittleBaseListener {
             }
         }
 
-        /*   while (!(buildAST.isEmpty())) {
+         while (!(buildAST.isEmpty())) {
+             for (int i = 0; i < buildAST.size(); i++) {
+                 if (containsParentheses(buildAST) == true) {
+                     if (buildAST.get(i).value.equals("+") || buildAST.get(i).value.equals("-") || buildAST.get(i).value.equals("*") ||
+                             buildAST.get(i).value.equals("/")) {
+                         if (!(buildAST.get(i + 1).value.equals(")")) && !(buildAST.get(i - 1).value.equals("("))) {
+                             buildASTNode(astIRNodes, buildAST, i);
 
-        } */
+                             buildAST.remove(i + 1);
+                             buildAST.remove(i - 1);
+                         } else if ((buildAST.get(i + 1).value.equals(")")) && (buildAST.get(i - 1).value.equals("("))) {
+                             buildAST.remove(i + 1);
+                             buildAST.remove(i - 1);
+                         }
+                     }
+                 } else {
+                     if (buildAST.get(i).value.equals("+") || buildAST.get(i).value.equals("-") || buildAST.get(i).value.equals("*") ||
+                             buildAST.get(i).value.equals("/")) {
+                         buildASTNode(astIRNodes, buildAST, i);
 
-        for (int i = 0; i < buildAST.size(); i++) {
-            if (containsParentheses(buildAST) == true) {
-                if (buildAST.get(i).value.equals("+") || buildAST.get(i).value.equals("-") || buildAST.get(i).value.equals("*") ||
-                    buildAST.get(i).value.equals("/")) {
-                    if (!(buildAST.get(i + 1).value.equals("(")) && !(buildAST.get(i - 1).value.equals(")"))) {
-                     //   System.out.println(buildAST.get(i).value + " : parent");
-                     //   System.out.println(buildAST.get(i - 1).value + " : left child");
-                     //   System.out.println(buildAST.get(i + 1).value + " : right child");
+                         buildAST.remove(i + 1);
+                         buildAST.remove(i - 1);
+                     } else if (buildAST.size() == 3 && buildAST.get(i).value.equals(":=")) {
+                         buildASTNode(astIRNodes, buildAST, i);
 
-                        buildAST.remove(i + 1);
-                        buildAST.remove(i - 1);
-                    }
-                }
-            } else {
-                if (buildAST.get(i).value.equals("+") || buildAST.get(i).value.equals("-") || buildAST.get(i).value.equals("*") ||
-                    buildAST.get(i).value.equals("/")) {
-                        buildASTNode(astIRNodes, buildAST, i);
+                         buildAST.remove(i + 1);
+                         buildAST.remove(i - 1);
+                     }
+                 }
+             }
 
-                        buildAST.remove(i + 1);
-                        buildAST.remove(i - 1);
-                } else if (buildAST.size() == 3 && buildAST.get(i).value.equals(":=")) {
-                    buildASTNode(astIRNodes, buildAST, i);
-
-                    buildAST.remove(i + 1);
-                    buildAST.remove(i - 1);
-                }
-            }
+             for (int i = 0; i < buildAST.size(); i++) {
+                 if (buildAST.size() == 1 && buildAST.get(i).value.equals(":=")) {
+                     buildAST.remove(i);
+                 }
+             }
         }
+    }
 
-        for (int i = 0; i < buildAST.size(); i++) {
-            if (buildAST.get(i).value.equals(":=") && buildAST.size() == 3) {
-                buildASTNode(astIRNodes, buildAST, i);
+    public void enterRead_stmt(LittleParser.Read_stmtContext ctx) {
+        System.out.println(ctx.id_list().getText());
+    }
 
-                buildAST.remove(i + 1);
-                buildAST.remove(i - 1);
-            }
-        }
-
-        for (int i = 0; i < buildAST.size(); i++) {
-            if (buildAST.size() == 1) {
-                buildAST.remove(i);
-            }
-        }
-
-
+    public void enterWrite_stmt(LittleParser.Write_stmtContext ctx) {
+        System.out.println(ctx.id_list().getText());
     }
 
     public void printIRNodes() {
@@ -312,7 +308,7 @@ public class Listener extends LittleBaseListener {
     private void buildASTNode(ArrayList<ASTNode> astIRNodes, ArrayList<ASTNode> buildAST, int i) {
         String add = "ADDI";
         String sub = "SUBI";
-        String mul = "MULI";
+        String mul = "MULTI";
         String div = "DIVI";
         String store = "STOREI";
 
@@ -325,7 +321,7 @@ public class Listener extends LittleBaseListener {
         if (containsFloatNum(astIRNodes) == true) {
             add = "ADDF";
             sub = "SUBF";
-            mul = "MULF";
+            mul = "MULTF";
             div = "DIVF";
             store = "STOREF";
         }
@@ -355,7 +351,7 @@ public class Listener extends LittleBaseListener {
                 } else {
                     astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
                             ";" + store + " " + buildAST.get(i).rightChild.value + " $T" + tempRegister + "\n" +
-                                    ";" + store + " " + tempRegister + " " + buildAST.get(i).leftChild.value));
+                                    ";" + store + " " + "$T" + tempRegister + " " + buildAST.get(i).leftChild.value));
                 }
                 tempRegister++;
                 break;
