@@ -46,7 +46,10 @@ public class Driver {
         new ParseTreeWalker().walk(listener, littleParser.program());
 
         // printing values from hash tables within the stack
-        listener.printHashTableValues();
+     //   listener.printHashTableValues();
+
+        // printing generated 3AC address code from IR nodes
+        listener.printIRNodes();
     }
 }
 

@@ -89,6 +89,7 @@ public class Listener extends LittleBaseListener {
 
         String tableName = ctx.id().getText();
         symbolTableNames.add("Symbol table " + tableName);
+        astIRNodes.add(new ASTNode(";LABEL " + tableName, null, null, null));
 
         String idRegex = "(INT|FLOAT|STRING)|,(INT|FLOAT|STRING)";
 
@@ -167,6 +168,7 @@ public class Listener extends LittleBaseListener {
 
 
     ArrayList<ASTNode> astIRNodes = new ArrayList<>();
+    int tempRegister = 1;
 
     class ASTNode {
         String value;
@@ -179,10 +181,6 @@ public class Listener extends LittleBaseListener {
             this.leftChild = leftChild;
             this.rightChild = rightChild;
             this.irCode = irCode;
-        }
-
-        public String toString() {
-            return value;
         }
     }
 
@@ -220,9 +218,9 @@ public class Listener extends LittleBaseListener {
                 if (buildAST.get(i).value.equals("+") || buildAST.get(i).value.equals("-") || buildAST.get(i).value.equals("*") ||
                     buildAST.get(i).value.equals("/")) {
                     if (!(buildAST.get(i + 1).value.equals("(")) && !(buildAST.get(i - 1).value.equals(")"))) {
-                        System.out.println(buildAST.get(i).value + " : parent");
-                        System.out.println(buildAST.get(i - 1).value + " : left child");
-                        System.out.println(buildAST.get(i + 1).value + " : right child");
+                     //   System.out.println(buildAST.get(i).value + " : parent");
+                     //   System.out.println(buildAST.get(i - 1).value + " : left child");
+                     //   System.out.println(buildAST.get(i + 1).value + " : right child");
 
                         buildAST.remove(i + 1);
                         buildAST.remove(i - 1);
@@ -259,13 +257,20 @@ public class Listener extends LittleBaseListener {
             }
         }
 
+
+    }
+
+    public void printIRNodes() {
+        System.out.println(";IR code");
+        System.out.println(astIRNodes.get(0).value);
+        System.out.println(";LINK");
         for (int i = 0; i < astIRNodes.size(); i++) {
             if (astIRNodes.get(i).irCode != null) {
                 System.out.println(astIRNodes.get(i).irCode);
             }
         }
-
-        System.out.print("\n");
+        System.out.println(";RET");
+        System.out.println(";tiny code");
     }
 
     private void parserHelper(String[] temp, ArrayList tempBuildAST) {
@@ -289,36 +294,73 @@ public class Listener extends LittleBaseListener {
         return false;
     }
 
+    private boolean containsFloatNum(ArrayList<ASTNode> buildAST) {
+        int decimalCount = 0;
+
+        for (int i = 0; i < buildAST.size(); i++) {
+            if (buildAST.get(i).value.contains(".")) {
+                decimalCount++;
+            }
+
+            if (decimalCount > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void buildASTNode(ArrayList<ASTNode> astIRNodes, ArrayList<ASTNode> buildAST, int i) {
+        String add = "ADDI";
+        String sub = "SUBI";
+        String mul = "MULI";
+        String div = "DIVI";
+        String store = "STOREI";
+
         astIRNodes.add(new ASTNode(buildAST.get(i - 1).value, null, null, null));
         astIRNodes.add(new ASTNode(buildAST.get(i + 1).value, null, null, null));
 
         buildAST.get(i).leftChild = buildAST.get(i - 1);
         buildAST.get(i).rightChild = buildAST.get(i + 1);
 
+        if (containsFloatNum(astIRNodes) == true) {
+            add = "ADDF";
+            sub = "SUBF";
+            mul = "MULF";
+            div = "DIVF";
+            store = "STOREF";
+        }
+
         switch (buildAST.get(i).value) {
             case "+":
                 astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
-                        ";ADDI " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T6"));
+                        ";" + add + " " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T" + tempRegister));
                 break;
             case "-":
                 astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
-                        ";SUBI " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T6"));
+                        ";" + sub + " " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T" + tempRegister));
                 break;
             case "*":
                 astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
-                        ";MULTI " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T6"));
+                        ";" + mul + " " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T" + tempRegister));
                 break;
             case "/":
                 astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
-                        ";DIVI " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T6"));
+                        ";" + div + " " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T" + tempRegister));
                 break;
             case ":=":
-                astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
-                        ";STOREI " + buildAST.get(i).rightChild.value + " $T6"));
+                if (buildAST.get(i).rightChild.value.equals("+") || buildAST.get(i).rightChild.value.equals("-") ||
+                        buildAST.get(i).rightChild.value.equals("*") || buildAST.get(i).rightChild.value.equals("/")) {
+                    astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
+                            ";" + store + " " + "$T" + tempRegister + " " + buildAST.get(i).leftChild.value));
+                } else {
+                    astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
+                            ";" + store + " " + buildAST.get(i).rightChild.value + " $T" + tempRegister + "\n" +
+                                    ";" + store + " " + tempRegister + " " + buildAST.get(i).leftChild.value));
+                }
+                tempRegister++;
                 break;
         }
-
     }
+
 
 }
