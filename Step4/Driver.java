@@ -24,8 +24,8 @@ import org.antlr.v4.runtime.tree.*;
 public class Driver {
     public static void main(String[] args) throws Exception {
         // create a CharStream that reads from standard input
-        CharStream input = CharStreams.fromStream(System.in);
-        //CharStream input = CharStreams.fromFileName("./Step4-TestCases/inputs/test2.micro");
+        //CharStream input = CharStreams.fromStream(System.in);
+        CharStream input = CharStreams.fromFileName("./Step4-TestCases/inputs/test3.micro");
 
         // create a lexer that feeds off of input CharStream
         LittleLexer littleLexer = new LittleLexer(input);
@@ -46,10 +46,11 @@ public class Driver {
         new ParseTreeWalker().walk(listener, littleParser.program());
 
         // printing values from hash tables within the stack
-     //   listener.printHashTableValues();
+        listener.printHashTableValues();
 
         // printing generated 3AC address code from IR nodes
         listener.printIRNodes();
+
     }
 }
 

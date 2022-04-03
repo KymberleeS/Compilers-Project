@@ -13,6 +13,7 @@
  */
 
 import java.util.*;
+import java.util.regex.*;
 
 public class Listener extends LittleBaseListener {
     class Node {
@@ -211,7 +212,7 @@ public class Listener extends LittleBaseListener {
 
          while (!(buildAST.isEmpty())) {
              for (int i = 0; i < buildAST.size(); i++) {
-                 if (containsParentheses(buildAST) == true) {
+                 if (containsParentheses(buildAST)) {
                      if (buildAST.get(i).value.equals("+") || buildAST.get(i).value.equals("-") || buildAST.get(i).value.equals("*") ||
                              buildAST.get(i).value.equals("/")) {
                          if (!(buildAST.get(i + 1).value.equals(")")) && !(buildAST.get(i - 1).value.equals("("))) {
@@ -249,11 +250,32 @@ public class Listener extends LittleBaseListener {
     }
 
     public void enterRead_stmt(LittleParser.Read_stmtContext ctx) {
-        System.out.println(ctx.id_list().getText());
+        ArrayList<String> tempReadAST = new ArrayList<>();
+
+        String[] temp = ctx.id_list().getText().split(",");
+        parserHelper(temp, tempReadAST);
+
+        for (int i = 0; i < tempReadAST.size(); i++) {
+            if (!tempReadAST.get(i).equals("")) {
+                astIRNodes.add(new ASTNode(tempReadAST.get(i), null, null,
+                        ";READ " + tempReadAST.get(i)));
+            }
+        }
+
     }
 
     public void enterWrite_stmt(LittleParser.Write_stmtContext ctx) {
-        System.out.println(ctx.id_list().getText());
+        ArrayList<String> tempWriteAST = new ArrayList<>();
+
+        String[] temp = ctx.id_list().getText().split(",");
+        parserHelper(temp, tempWriteAST);
+
+        for (int i = 0; i < tempWriteAST.size(); i++) {
+            if (!tempWriteAST.get(i).equals("")) {
+                astIRNodes.add(new ASTNode(tempWriteAST.get(i), null, null,
+                        ";WRITE " + tempWriteAST.get(i)));
+            }
+        }
     }
 
     public void printIRNodes() {
@@ -269,7 +291,7 @@ public class Listener extends LittleBaseListener {
         System.out.println(";tiny code");
     }
 
-    private void parserHelper(String[] temp, ArrayList tempBuildAST) {
+    private void parserHelper(String[] temp, ArrayList<String> tempBuildAST) {
         for (int i = 0; i < temp.length; i++) {
             tempBuildAST.add(temp[i]);
         }
@@ -318,7 +340,7 @@ public class Listener extends LittleBaseListener {
         buildAST.get(i).leftChild = buildAST.get(i - 1);
         buildAST.get(i).rightChild = buildAST.get(i + 1);
 
-        if (containsFloatNum(astIRNodes) == true) {
+        if (containsFloatNum(astIRNodes)) {
             add = "ADDF";
             sub = "SUBF";
             mul = "MULTF";
@@ -328,20 +350,16 @@ public class Listener extends LittleBaseListener {
 
         switch (buildAST.get(i).value) {
             case "+":
-                astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
-                        ";" + add + " " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T" + tempRegister));
+                nodeCases(buildAST, store, add, i);
                 break;
             case "-":
-                astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
-                        ";" + sub + " " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T" + tempRegister));
+                nodeCases(buildAST, store, sub, i);
                 break;
             case "*":
-                astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
-                        ";" + mul + " " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T" + tempRegister));
+                nodeCases(buildAST, store, mul, i);
                 break;
             case "/":
-                astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
-                        ";" + div + " " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T" + tempRegister));
+                nodeCases(buildAST, store, div, i);
                 break;
             case ":=":
                 if (buildAST.get(i).rightChild.value.equals("+") || buildAST.get(i).rightChild.value.equals("-") ||
@@ -356,6 +374,43 @@ public class Listener extends LittleBaseListener {
                 tempRegister++;
                 break;
         }
+    }
+
+    private void nodeCases(ArrayList<ASTNode> buildAST, String updateOp, String op, int i) {
+        if (checkNumConstant(buildAST.get(i).rightChild.value)) {
+            astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
+                    updateRightIRCode(buildAST, updateOp, i) + ";" + op + " " + buildAST.get(i).leftChild.value + " " + "$T" +
+                            (tempRegister - 1) + " $T" + tempRegister));
+        } else if (checkNumConstant(buildAST.get(i).leftChild.value)) {
+            astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
+                    updateLeftIRCode(buildAST, updateOp, i) + ";" + op + " " + "$T" + (tempRegister - 1) + " " +
+                            buildAST.get(i).rightChild.value + " $T" + tempRegister));
+        } else {
+            astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1),
+                    ";" + op + " " + buildAST.get(i).leftChild.value + " " + buildAST.get(i).rightChild.value + " $T" + tempRegister));
+        }
+    }
+
+    private boolean checkNumConstant(String value) {
+        Pattern pattern = Pattern.compile("(\\.)?[0-9]\\d*(\\.\\d+)?");
+        Matcher matcher = pattern.matcher(value);
+
+        if (matcher.find()) {
+            return true;
+        }
+        return false;
+    }
+
+    private String updateRightIRCode(ArrayList<ASTNode> buildAST, String store, int i) {
+        int previousRegister = tempRegister;
+        tempRegister++;
+        return ";" + store + " " + buildAST.get(i).rightChild.value + " $T" + previousRegister + "\n";
+    }
+
+    private String updateLeftIRCode(ArrayList<ASTNode> buildAST, String store, int i) {
+        int previousRegister = tempRegister;
+        tempRegister++;
+        return ";" + store + " " + buildAST.get(i).leftChild.value + " $T" + previousRegister + "\n";
     }
 
 
