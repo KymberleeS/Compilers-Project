@@ -50,17 +50,17 @@ public class Listener extends LittleBaseListener {
             }
         }
 
-        //create a node for the string variable
+        // create a node for the string variable
         Node stringNode = new Node(ctx.id().getText(), type, ctx.str().getText());
 
-        //put the node into the symbol table who's scope the string variable was
+        // put the node into the symbol table who's scope the string variable was
         stackHT.peek().put(stringNode.name, stringNode);
     }
 
     public void enterPgm_body(LittleParser.Pgm_bodyContext ctx) {
         symbolTableNames.add("Symbol table GLOBAL");
 
-        //add the global hash table to the stack
+        // add the global hash table to the stack
         stackHT.push(globalHT);
     }
 
@@ -149,7 +149,7 @@ public class Listener extends LittleBaseListener {
         symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
      }
 
-    public void printHashTableValues() {
+    public void printHashTableVariables() {
         for (int i = 0; i < stackHT.size(); i++) {
             System.out.println(symbolTableNames.get(i));
             Iterator<Node> itr = stackHT.get(i).values().iterator();
@@ -255,13 +255,7 @@ public class Listener extends LittleBaseListener {
         String[] temp = ctx.id_list().getText().split(",");
         parserHelper(temp, tempReadAST);
 
-        for (int i = 0; i < tempReadAST.size(); i++) {
-            if (!tempReadAST.get(i).equals("")) {
-                astIRNodes.add(new ASTNode(tempReadAST.get(i), null, null,
-                        ";READ " + tempReadAST.get(i)));
-            }
-        }
-
+       readWriteStmts(tempReadAST, "READ");
     }
 
     public void enterWrite_stmt(LittleParser.Write_stmtContext ctx) {
@@ -270,10 +264,21 @@ public class Listener extends LittleBaseListener {
         String[] temp = ctx.id_list().getText().split(",");
         parserHelper(temp, tempWriteAST);
 
+        readWriteStmts(tempWriteAST, "WRITE");
+    }
+
+    private void readWriteStmts(ArrayList<String> tempWriteAST, String stmtType) {
         for (int i = 0; i < tempWriteAST.size(); i++) {
-            if (!tempWriteAST.get(i).equals("")) {
-                astIRNodes.add(new ASTNode(tempWriteAST.get(i), null, null,
-                        ";WRITE " + tempWriteAST.get(i)));
+            for (Map.Entry<String, Node> entry : globalHT.entrySet()) {
+                if (tempWriteAST.get(i).equals(entry.getValue().name)) {
+                    if (entry.getValue().type.equals("INT")) {
+                        astIRNodes.add(new ASTNode(tempWriteAST.get(i), null, null,   ";" + stmtType + "I " + tempWriteAST.get(i)));
+                    } else if (entry.getValue().type.equals("FLOAT")) {
+                        astIRNodes.add(new ASTNode(tempWriteAST.get(i), null, null, ";" + stmtType + "F " + tempWriteAST.get(i)));
+                    } else if (entry.getValue().type.equals("STRING")) {
+                        astIRNodes.add(new ASTNode(tempWriteAST.get(i), null, null, ";" + stmtType + "S " + tempWriteAST.get(i)));
+                    }
+                }
             }
         }
     }
@@ -412,6 +417,5 @@ public class Listener extends LittleBaseListener {
         tempRegister++;
         return ";" + store + " " + buildAST.get(i).leftChild.value + " $T" + previousRegister + "\n";
     }
-
 
 }
