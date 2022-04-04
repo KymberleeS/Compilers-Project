@@ -270,7 +270,7 @@ public class Listener extends LittleBaseListener {
     }
 
     // function that converts existing 3AC to Tiny Assembly Codes
-    private void tinyAssemblyConversion() {
+    public void tinyAssemblyConversion() {
         for (Map.Entry<String, Node> entry : globalHT.entrySet()) {
             if (entry.getValue().type.equals("STRING")) {
                 tinyAssemblyCode.add("str " + entry.getValue().name + " " + entry.getValue().value);
@@ -292,8 +292,6 @@ public class Listener extends LittleBaseListener {
         }
         System.out.println(";RET");
         System.out.println(";tiny code");
-
-        tinyAssemblyConversion();
 
         for (int i = 0; i < tinyAssemblyCode.size(); i++) {
             System.out.println(tinyAssemblyCode.get(i));

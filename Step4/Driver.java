@@ -25,7 +25,7 @@ public class Driver {
     public static void main(String[] args) throws Exception {
         // create a CharStream that reads from standard input
         CharStream input = CharStreams.fromStream(System.in);
-        //CharStream input = CharStreams.fromFileName("./Step4-TestCases/inputs/test1.micro");
+        //CharStream input = CharStreams.fromFileName("./Step4-TestCases/inputs/test2.micro");
 
         // create a lexer that feeds off of input CharStream
         LittleLexer littleLexer = new LittleLexer(input);
@@ -47,6 +47,9 @@ public class Driver {
 
         // printing values from hash tables within the stack
     //    listener.printHashTableVariables();
+
+        // executing tiny assembly conversion
+        listener.tinyAssemblyConversion();
 
         // printing generated 3AC address code from IR nodes
         listener.printGeneratedCode();
