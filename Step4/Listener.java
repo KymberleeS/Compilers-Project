@@ -278,6 +278,14 @@ public class Listener extends LittleBaseListener {
                 tinyAssemblyCode.add("var " + entry.getValue().name);
             }
         }
+
+        for (int i = 0; i < astIRNodes.size(); i++) {
+            if (astIRNodes.get(i).irCode != null) {
+                String[] threeAddressCode = astIRNodes.get(i).irCode.split(" ");
+
+                convertReadWriteAddressCode(threeAddressCode);
+            }
+        }
     }
 
     // functions that prints out code generation
@@ -447,6 +455,30 @@ public class Listener extends LittleBaseListener {
                     }
                 }
             }
+        }
+    }
+
+    // helper function that converts read/write 3AC to tiny assembly code
+    private void convertReadWriteAddressCode(String[] threeAddressCode) {
+        switch(threeAddressCode[0]) {
+            case ";WRITEI":
+                tinyAssemblyCode.add("sys writei " + threeAddressCode[1]);
+                break;
+            case ";WRITEF":
+                tinyAssemblyCode.add("sys writer " + threeAddressCode[1]);
+                break;
+            case ";WRITES":
+                tinyAssemblyCode.add("sys writes " + threeAddressCode[1]);
+                break;
+            case ";READI":
+                tinyAssemblyCode.add("sys readi " + threeAddressCode[1]);
+                break;
+            case ";READF":
+                tinyAssemblyCode.add("sys readr " + threeAddressCode[1]);
+                break;
+            case ";READS":
+                tinyAssemblyCode.add("sys reads " + threeAddressCode[1]);
+                break;
         }
     }
 
