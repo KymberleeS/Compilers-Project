@@ -61,7 +61,10 @@ public class Listener extends LittleBaseListener {
     ArrayList<ASTNode> astIRNodes = new ArrayList<>();
     ArrayList<String[]> threeAddressCode = new ArrayList<>();
     ArrayList<String> tinyAssemblyCode = new ArrayList<>();
+    ArrayList<String> trackRegister = new ArrayList<>();
+    ArrayList<String> trackVariables = new ArrayList<>();
     int tempRegister = 1;
+    int register = 0;
 
 
     public void enterString_decl(LittleParser.String_declContext ctx) {
@@ -290,12 +293,35 @@ public class Listener extends LittleBaseListener {
             // converting read/write statements
             convertReadWriteAddressCode(threeAddressCode, i);
 
+            switch (threeAddressCode.get(i)[0]) {
+                case ";MULTF":
+                case ";MULTI":
+                    tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + "r" + register);
+                    tinyAssemblyCode.add("muli " + threeAddressCode.get(i)[2] + " " + "r" + register);
+                    tinyAssemblyCode.add("move " + "r" + register + " " + threeAddressCode.get(i + 1)[2]);
+
+                    if (!trackRegister.contains(register) && !trackVariables.contains(threeAddressCode.get(i + 1)[2])) {
+                        trackRegister.add("r" + register);
+                        trackVariables.add(threeAddressCode.get(i + 1)[2]);
+                    }
+
+                    register++;
+                    break;
+                case ";ADDF":
+                case ";ADDI":
+                    if (trackVariables.contains(threeAddressCode.get(i)[1]) && trackVariables.contains(threeAddressCode.get(i)[2])) {
+                        tinyAssemblyCode.add("addi " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[1])) + " " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])));
+                        tinyAssemblyCode.add("move " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])) + " " + threeAddressCode.get(i + 1)[2]);
+                    }
+                    register++;
+                    break;
+            }
+
             // converting direct assignment statements (Ex. a := 5)
             if (threeAddressCode.get(i).length == 5 && (threeAddressCode.get(i)[0].equals(";STOREI") || threeAddressCode.get(i)[0].equals(";STOREF"))) {
                 tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + threeAddressCode.get(i)[4]);
             }
         }
-
     }
 
     // functions that prints out code generation
