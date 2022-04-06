@@ -59,6 +59,7 @@ public class Listener extends LittleBaseListener {
 
     // step 4 variables
     ArrayList<ASTNode> astIRNodes = new ArrayList<>();
+    ArrayList<String[]> threeAddressCode = new ArrayList<>();
     ArrayList<String> tinyAssemblyCode = new ArrayList<>();
     int tempRegister = 1;
 
@@ -281,11 +282,20 @@ public class Listener extends LittleBaseListener {
 
         for (int i = 0; i < astIRNodes.size(); i++) {
             if (astIRNodes.get(i).irCode != null) {
-                String[] threeAddressCode = astIRNodes.get(i).irCode.split(" ");
-
-                convertReadWriteAddressCode(threeAddressCode);
+               threeAddressCode.add(astIRNodes.get(i).irCode.split(" "));
             }
         }
+
+        for (int i = 0; i < threeAddressCode.size(); i++) {
+            // converting read/write statements
+            convertReadWriteAddressCode(threeAddressCode, i);
+
+            // converting direct assignment statements (Ex. a := 5)
+            if (threeAddressCode.get(i).length == 5 && (threeAddressCode.get(i)[0].equals(";STOREI") || threeAddressCode.get(i)[0].equals(";STOREF"))) {
+                tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + threeAddressCode.get(i)[4]);
+            }
+        }
+
     }
 
     // functions that prints out code generation
@@ -354,7 +364,6 @@ public class Listener extends LittleBaseListener {
                 if (buildAST.get(i).rightChild.value.equals("+") || buildAST.get(i).rightChild.value.equals("-") ||
                     buildAST.get(i).rightChild.value.equals("*") || buildAST.get(i).rightChild.value.equals("/")) {
                     irCode = ";" + store + " " + "$T" + tempRegister + " " + buildAST.get(i).leftChild.value;
-
 
                     astIRNodes.add(new ASTNode(buildAST.get(i).value, buildAST.get(i - 1), buildAST.get(i + 1), irCode));
                 } else {
@@ -459,25 +468,25 @@ public class Listener extends LittleBaseListener {
     }
 
     // helper function that converts read/write 3AC to tiny assembly code
-    private void convertReadWriteAddressCode(String[] threeAddressCode) {
-        switch(threeAddressCode[0]) {
+    private void convertReadWriteAddressCode(ArrayList<String[]> threeAddressCode, int i) {
+        switch(threeAddressCode.get(i)[0]) {
             case ";WRITEI":
-                tinyAssemblyCode.add("sys writei " + threeAddressCode[1]);
+                tinyAssemblyCode.add("sys writei " + threeAddressCode.get(i)[1]);
                 break;
             case ";WRITEF":
-                tinyAssemblyCode.add("sys writer " + threeAddressCode[1]);
+                tinyAssemblyCode.add("sys writer " + threeAddressCode.get(i)[1]);
                 break;
             case ";WRITES":
-                tinyAssemblyCode.add("sys writes " + threeAddressCode[1]);
+                tinyAssemblyCode.add("sys writes " + threeAddressCode.get(i)[1]);
                 break;
             case ";READI":
-                tinyAssemblyCode.add("sys readi " + threeAddressCode[1]);
+                tinyAssemblyCode.add("sys readi " + threeAddressCode.get(i)[1]);
                 break;
             case ";READF":
-                tinyAssemblyCode.add("sys readr " + threeAddressCode[1]);
+                tinyAssemblyCode.add("sys readr " + threeAddressCode.get(i)[1]);
                 break;
             case ";READS":
-                tinyAssemblyCode.add("sys reads " + threeAddressCode[1]);
+                tinyAssemblyCode.add("sys reads " + threeAddressCode.get(i)[1]);
                 break;
         }
     }
