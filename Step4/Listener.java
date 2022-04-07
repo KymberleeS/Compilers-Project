@@ -293,7 +293,7 @@ public class Listener extends LittleBaseListener {
             // converting read/write statements
             convertReadWriteAddressCode(threeAddressCode, i);
 
-            String expr;
+            String expr = null;
             switch (threeAddressCode.get(i)[0]) {
                 case ";ADDF":
                 case ";ADDI":
@@ -408,8 +408,16 @@ public class Listener extends LittleBaseListener {
 
                         if (threeAddressCode.get(i)[2].contains(";DIVF")) {
                             expr = "divr ";
-                        } else {
+                        } else if (threeAddressCode.get(i)[2].contains(";DIVI")) {
                             expr = "divi ";
+                        } else if (threeAddressCode.get(i)[2].contains(";MULTI")) {
+                            expr = "muli ";
+                        } else if (threeAddressCode.get(i)[2].contains(";MULTF")) {
+                            expr = "mulr ";
+                        } else if (threeAddressCode.get(i)[2].contains(";ADDI")) {
+                            expr = "addi ";
+                        } else if (threeAddressCode.get(i)[2].contains(";ADDF")) {
+                            expr = "addr ";
                         }
 
                         tinyAssemblyCode.add("move " + threeAddressCode.get(i)[3] + " " + "r" + register);
@@ -551,6 +559,12 @@ public class Listener extends LittleBaseListener {
             }
 
             if (decimalCount > 0) {
+                return true;
+            }
+        }
+
+        for (Map.Entry<String, Node> entry : globalHT.entrySet()) {
+            if (entry.getValue().type.equals("FLOAT")) {
                 return true;
             }
         }
