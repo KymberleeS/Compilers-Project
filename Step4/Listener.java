@@ -17,7 +17,7 @@ import java.util.regex.*;
 
 public class Listener extends LittleBaseListener {
     // (step 3) - class that holds name, type, and value attributes for variables
-    class Node {
+    static class Node {
         String name;
         String type;
         String value;
@@ -37,7 +37,7 @@ public class Listener extends LittleBaseListener {
     }
 
     // (step 4) - class for assisting in building ASTs for simple expressions
-    class ASTNode {
+    static class ASTNode {
         String value;
         ASTNode leftChild;
         ASTNode rightChild;
@@ -176,18 +176,6 @@ public class Listener extends LittleBaseListener {
         symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
      }
 
-  /*  public void printHashTableVariables() {
-        for (int i = 0; i < stackHT.size(); i++) {
-            System.out.println(symbolTableNames.get(i));
-            Iterator<Node> itr = stackHT.get(i).values().iterator();
-
-            while(itr.hasNext()){
-                System.out.println(itr.next().toString());
-            }
-            System.out.print("\n");
-        }
-    } */
-
     // function that extracts all expressions found in Little Source Code
     public void enterAssign_expr(LittleParser.Assign_exprContext ctx) {
         ArrayList<String> tempBuildAST = new ArrayList<>();
@@ -263,7 +251,7 @@ public class Listener extends LittleBaseListener {
        readWriteStmts(tempReadAST, "READ");
     }
 
-    // functions that extracts variables from Write statements
+    // function that extracts variables from Write statements
     public void enterWrite_stmt(LittleParser.Write_stmtContext ctx) {
         ArrayList<String> tempWriteAST = new ArrayList<>();
 
@@ -294,7 +282,7 @@ public class Listener extends LittleBaseListener {
             convertReadWriteAddressCode(threeAddressCode, i);
 
             // converting simple expressions
-            String expr = null;
+            String expr = "";
             convertSimpleExpressions(expr, i);
         }
     }
@@ -507,87 +495,36 @@ public class Listener extends LittleBaseListener {
             case ";ADDI":
                 expr = expressionOperator(";ADDI", "addi", "addr", i);
 
-                if (trackVariables.contains(threeAddressCode.get(i)[1]) && trackVariables.contains(threeAddressCode.get(i)[2])) {
-                    tinyAssemblyCode.add(expr + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[1])) + " " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])));
-                    tinyAssemblyCode.add("move " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])) + " " + threeAddressCode.get(i + 1)[2]);
-                } else if (trackVariables.contains(threeAddressCode.get(i)[1])) {
-                    tinyAssemblyCode.add("move " + threeAddressCode.get(i)[2] + " " + "r" + register);
+                simpleExpressionCases(expr, i);
+                optimize((i + 1), 2);
 
-                    trackRegister.add("r" + register);
-                    trackVariables.add(threeAddressCode.get(i)[2]);
-
-                    tinyAssemblyCode.add(expr + "r" + register + " " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[1])));
-                    tinyAssemblyCode.add("move " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[1])) + " " + threeAddressCode.get(i + 1)[2]);
-                }
-
-                if (!trackRegister.contains("r" + register) && !trackVariables.contains(threeAddressCode.get(i + 1)[2])) {
-                    trackRegister.add("r" + register);
-                    trackVariables.add(threeAddressCode.get(i + 1)[2]);
-                }
                 register++;
                 break;
             case ";SUBF":
             case ";SUBI":
                 expr = expressionOperator(";SUBI", "subi", "subr", i);
 
-                if (trackVariables.contains(threeAddressCode.get(i)[1]) && trackVariables.contains(threeAddressCode.get(i)[2])) {
-                    tinyAssemblyCode.add(expr + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[1])) + " " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])));
-                    tinyAssemblyCode.add("move " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])) + " " + threeAddressCode.get(i + 1)[2]);
-                } else {
-                    tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + "r" + register);
-                    tinyAssemblyCode.add(expr + threeAddressCode.get(i)[2] + " " + "r" + register);
-                    tinyAssemblyCode.add("move " + "r" + register + " " + threeAddressCode.get(i + 1)[2]);
+                simpleExpressionCases(expr, i);
+                optimize((i + 1), 2);
 
-                }
-
-                if (!trackRegister.contains("r" + register) && !trackVariables.contains(threeAddressCode.get(i + 1)[2])) {
-                    trackRegister.add("r" + register);
-                    trackVariables.add(threeAddressCode.get(i + 1)[2]);
-                }
                 register++;
                 break;
             case ";MULTF":
             case ";MULTI":
                 expr = expressionOperator(";MULTI", "muli", "mulr", i);
 
-                if (trackVariables.contains(threeAddressCode.get(i)[1]) && trackVariables.contains(threeAddressCode.get(i)[2])) {
-                    tinyAssemblyCode.add(expr + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[1])) + " " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])));
-                    tinyAssemblyCode.add("move " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])) + " " + threeAddressCode.get(i + 1)[2]);
+                simpleExpressionCases(expr, i);
+                optimize((i + 1), 2);
 
-                    trackVariables.set(trackVariables.indexOf(threeAddressCode.get(i)[2]) ,threeAddressCode.get(i + 1)[2]);
-                } else {
-                    tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + "r" + register);
-                    tinyAssemblyCode.add(expr + threeAddressCode.get(i)[2] + " " + "r" + register);
-                    tinyAssemblyCode.add("move " + "r" + register + " " + threeAddressCode.get(i + 1)[2]);
-                }
-
-                if (!trackRegister.contains("r" + register) && !trackVariables.contains(threeAddressCode.get(i + 1)[2])) {
-                    trackRegister.add("r" + register);
-                    trackVariables.add(threeAddressCode.get(i + 1)[2]);
-                } else if (trackRegister.contains("r" + register)) {
-                    trackVariables.set(trackRegister.indexOf("r" + register), threeAddressCode.get(i + 1)[2]);
-                }
                 register++;
                 break;
             case ";DIVF":
             case ";DIVI":
                 expr = expressionOperator(";DIVI", "divi", "divr", i);
 
-                if (trackVariables.contains(threeAddressCode.get(i)[1])) {
-                    tinyAssemblyCode.add(expr + threeAddressCode.get(i)[2] + " " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[1])));
-                    tinyAssemblyCode.add("move " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[1])) + " " + threeAddressCode.get(i + 1)[2]);
-                } else {
-                    tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + "r" + register);
-                    tinyAssemblyCode.add(expr + threeAddressCode.get(i)[2] + " " + "r" + register);
-                    tinyAssemblyCode.add("move " + "r" + register + " " + threeAddressCode.get(i + 1)[2]);
-                }
+                simpleExpressionCases(expr, i);
+                optimize((i + 1), 2);
 
-                if (!trackRegister.contains("r" + register) && !trackVariables.contains(threeAddressCode.get(i + 1)[2])) {
-                    trackRegister.add("r" + register);
-                    trackVariables.add(threeAddressCode.get(i + 1)[2]);
-                } else if (trackRegister.contains("r" + register)) {
-                    trackVariables.set(trackRegister.indexOf("r" + register), threeAddressCode.get(i + 1)[2]);
-                }
                 register++;
                 break;
             case ";STOREF":
@@ -607,6 +544,10 @@ public class Listener extends LittleBaseListener {
                         expr = "addi ";
                     } else if (threeAddressCode.get(i)[2].contains(";ADDF")) {
                         expr = "addr ";
+                    } else if (threeAddressCode.get(i)[2].contains(";SUBI")) {
+                        expr = "subi ";
+                    } else if (threeAddressCode.get(i)[2].contains(";SUBF")) {
+                        expr = "subr ";
                     }
 
                     tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + "r" + register);
@@ -616,17 +557,74 @@ public class Listener extends LittleBaseListener {
                     tinyAssemblyCode.add(expr + "r" + (register - 1) + " " + "r" + register);
                     tinyAssemblyCode.add("move " + "r" + register + " " + threeAddressCode.get(i + 1)[2]);
 
-                    if (!trackRegister.contains("r" + register) && !trackVariables.contains(threeAddressCode.get(i + 1)[2])) {
-                        trackRegister.add("r" + register);
-                        trackVariables.add(threeAddressCode.get(i + 1)[2]);
-                    }
-
+                    optimize((i + 1), 2);
                     register++;
                 }
                 break;
+            }
+    }
+
+    // helper function that keeps track of variables/registers to prevent unnecessary use of new registers
+    private void simpleExpressionCases(String expr, int i) {
+        if (threeAddressCode.get(i)[0].equals(";DIVI") || threeAddressCode.get(i)[0].equals(";DIVF")) {
+            if (trackVariables.contains(threeAddressCode.get(i)[1]) && trackVariables.contains(threeAddressCode.get(i)[2])) {
+                tinyAssemblyCode.add(expr + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[1])) + " " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])));
+                tinyAssemblyCode.add("move " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])) + " " + threeAddressCode.get(i + 1)[2]);
+
+                trackVariables.set(trackVariables.indexOf(threeAddressCode.get(i)[2]) ,threeAddressCode.get(i + 1)[2]);
+            } else if (trackVariables.contains(threeAddressCode.get(i)[1])) {
+                tinyAssemblyCode.add(expr + threeAddressCode.get(i)[2] + " " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[1])));
+                tinyAssemblyCode.add("move " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[1])) + " " + threeAddressCode.get(i + 1)[2]);
+            } else if (trackVariables.contains(threeAddressCode.get(i)[2])) {
+                tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + "r" + register);
+                tinyAssemblyCode.add(expr + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])) + " " + "r" + register);
+                tinyAssemblyCode.add("move " + "r" + register + " " + threeAddressCode.get(i + 1)[2]);
+            } else {
+                tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + "r" + register);
+                tinyAssemblyCode.add(expr + threeAddressCode.get(i)[2] + " " + "r" + register);
+                tinyAssemblyCode.add("move " + "r" + register + " " + threeAddressCode.get(i + 1)[2]);
+            }
+        } else {
+            if (trackVariables.contains(threeAddressCode.get(i)[1]) && trackVariables.contains(threeAddressCode.get(i)[2])) {
+                tinyAssemblyCode.add(expr + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[1])) + " " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])));
+                tinyAssemblyCode.add("move " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])) + " " + threeAddressCode.get(i + 1)[2]);
+
+                trackVariables.set(trackVariables.indexOf(threeAddressCode.get(i)[2]) ,threeAddressCode.get(i + 1)[2]);
+            } else if (trackVariables.contains(threeAddressCode.get(i)[1])) {
+                tinyAssemblyCode.add("move " + threeAddressCode.get(i)[2] + " " + "r" + register);
+
+                trackRegister.add("r" + register);
+                trackVariables.add(threeAddressCode.get(i)[2]);
+
+                tinyAssemblyCode.add(expr + "r" + register + " " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[1])));
+                tinyAssemblyCode.add("move " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[1])) + " " + threeAddressCode.get(i + 1)[2]);
+            } else if (trackVariables.contains(threeAddressCode.get(i)[2])) {
+                tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + "r" + register);
+
+                trackRegister.add("r" + register);
+                trackVariables.add(threeAddressCode.get(i)[1]);
+
+                tinyAssemblyCode.add(expr + "r" + register + " " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])));
+                tinyAssemblyCode.add("move " + trackRegister.get(trackVariables.indexOf(threeAddressCode.get(i)[2])) + " " + threeAddressCode.get(i + 1)[2]);
+            } else {
+                tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + "r" + register);
+                tinyAssemblyCode.add(expr + threeAddressCode.get(i)[2] + " " + "r" + register);
+                tinyAssemblyCode.add("move " + "r" + register + " " + threeAddressCode.get(i + 1)[2]);
+            }
         }
     }
 
+    // helper function that checks if variables/registers are being tracked for code optimization
+    private void optimize(int i, int j) {
+        if (!trackRegister.contains("r" + register) && !trackVariables.contains(threeAddressCode.get(i)[j])) {
+            trackRegister.add("r" + register);
+            trackVariables.add(threeAddressCode.get(i)[j]);
+        } else if (trackRegister.contains("r" + register) && !trackVariables.contains(threeAddressCode.get(i)[j])) {
+            trackVariables.set(trackRegister.indexOf("r" + register), threeAddressCode.get(i)[j]);
+        }
+    }
+
+    // helper function that determines the operator for variable type
     private String expressionOperator(String op, String opi, String opf, int i) {
         if (threeAddressCode.get(i)[0].equals(op)) {
             return opi + " ";

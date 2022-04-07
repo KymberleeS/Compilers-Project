@@ -45,9 +45,6 @@ public class Driver {
         // parsing through program with listener
         new ParseTreeWalker().walk(listener, littleParser.program());
 
-        // printing values from hash tables within the stack
-    //    listener.printHashTableVariables();
-
         // executing tiny assembly conversion
         listener.tinyAssemblyConversion();
 
