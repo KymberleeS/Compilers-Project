@@ -1,6 +1,6 @@
 /**
  * The Listener.java extends the LittleBaseListener and implements several of
- * the empty methods pregenerated from ANTLR4. This listener creates a hash table
+ * the empty methods pre-generated from ANTLR4. This listener creates a hash table
  * for each scope of the program and pushes them onto the stack. Within each scope
  * any variables are added to the scopes hash table, which acts as a symbol table.
  * The values inserted into the table are stored as nodes which contains three
@@ -67,23 +67,25 @@ public class Listener extends LittleBaseListener {
     int register = 0;
 
 
+    // listener function for string
     public void enterString_decl(LittleParser.String_declContext ctx) {
         String[] list = ctx.getText().split("[a-z]+");
         String type = "";
 
-        for (int i = 0; i < list.length; i++) {
-            if (list[i].equals("STRING")) {
-                type = list[i];
+        for (String s : list) {
+            if (s.equals("STRING")) {
+                type = s;
             }
         }
 
         // create a node for the string variable
         Node stringNode = new Node(ctx.id().getText(), type, ctx.str().getText());
 
-        // put the node into the symbol table who's scope the string variable was
+        // put the node into the symbol table whose scope the string variable was
         stackHT.peek().put(stringNode.name, stringNode);
     }
 
+    // listener function that enters the beginning of a program
     public void enterPgm_body(LittleParser.Pgm_bodyContext ctx) {
         symbolTableNames.add("Symbol table GLOBAL");
 
@@ -91,6 +93,7 @@ public class Listener extends LittleBaseListener {
         stackHT.push(globalHT);
     }
 
+    // listener function that extracts declared variables
     public void enterVar_decl(LittleParser.Var_declContext ctx) {
         String type    = ctx.var_type().getText();
         String id_list = ctx.id_list().getText();
@@ -100,17 +103,17 @@ public class Listener extends LittleBaseListener {
         for(String str : list){
             //if the hash table does not have the variable already, add it
             //otherwise throw an error
-            if(!current_table.containsKey(str)){
+            if (!current_table.containsKey(str)) {
                 Node var_decl = new Node(str, type, null);
                 current_table.put(str, var_decl);
-            }
-            else{
+            } else {
                System.out.println("DECLARATION ERROR "+str);
                System.exit(0);
             }
         }
     }
 
+    // listener function that extracts declared variables at the function scope
     public void enterFunc_decl(LittleParser.Func_declContext ctx) {
         LinkedHashMap<String, Node> functionTable  = new LinkedHashMap<>();
         stackHT.push(functionTable);
@@ -130,22 +133,22 @@ public class Listener extends LittleBaseListener {
         ArrayList<String> type = new ArrayList<>();
 
         // if a non-empty string, add the variable id to var_id array
-        for (int i = 0; i < tempVar_id.length; i++) {
-            if(!(tempVar_id[i].equals(""))) {
-                var_id.add(tempVar_id[i]);
+        for (String s : tempVar_id) {
+            if (!(s.equals(""))) {
+                var_id.add(s);
             }
         }
 
         // if a non-empty string, add the variable type to type array
-        for (int i = 0; i < tempType.length; i++) {
-            if(!(tempType[i].equals(""))) {
-                type.add(tempType[i]);
+        for (String s : tempType) {
+            if (!(s.equals(""))) {
+                type.add(s);
             }
         }
 
         for(int i = 0; i < var_id.size(); i++){
             // check to see if variable is already declared; throw error if so
-            if(!functionTable.containsKey(var_id.get(i))){
+            if (!functionTable.containsKey(var_id.get(i))) {
                 Node var_decl = new Node(var_id.get(i), type.get(i), null);
                 functionTable.put(var_id.get(i), var_decl);
             } else {
@@ -155,32 +158,36 @@ public class Listener extends LittleBaseListener {
         }
     }
 
+    // listener function that extracts declared variables at the if-block scope
     public void enterIf_stmt(LittleParser.If_stmtContext ctx) {
         LinkedHashMap<String, Node> ifTable  = new LinkedHashMap<>();
         stackHT.push(ifTable);
         symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
      }
 
+    // listener function that extracts declared variables at the else-block scope
     public void enterElse_part(LittleParser.Else_partContext ctx) {
-        // check to see if there is not an else statement present; if there is add a new BLOCK scope
-        if(ctx.decl() != null){
+        // check to see if there is not an else statement present; if there is, add a new BLOCK scope
+        if(ctx.decl() != null) {
             LinkedHashMap<String, Node> elseTable  = new LinkedHashMap<>();
             stackHT.push(elseTable);
             symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
         }
      }
 
+    // listener function that extracts declared variables at the while-block scope
     public void enterWhile_stmt(LittleParser.While_stmtContext ctx) {
         LinkedHashMap<String, Node> whileTable  = new LinkedHashMap<>();
         stackHT.push(whileTable);
         symbolTableNames.add("Symbol table BLOCK " + (++scope_cnt));
      }
 
-    // function that extracts all expressions found in Little Source Code
+    // listener function that extracts all expressions found in Little Source Code
     public void enterAssign_expr(LittleParser.Assign_exprContext ctx) {
         ArrayList<String> tempBuildAST = new ArrayList<>();
         ArrayList<ASTNode> buildAST = new ArrayList<>();
 
+        // regex that splits every character found in a simple expression
         String[] temp;
         String exprSplitter = "(?<=\\\\d)|(?=\\+)|(?<=\\+)|(?=\\/)|(?<=\\/)|(?=\\*)|(?<=\\*)|(?=\\-)|(?<=\\-)|(?=\\))|((?<=\\)))|(?=\\()|(?<=\\()";
 
@@ -196,43 +203,55 @@ public class Listener extends LittleBaseListener {
         temp = ctx.expr().factor().postfix_expr().getText().split(exprSplitter);
         parserHelper(temp, tempBuildAST);
 
-        for (int i = 0; i < tempBuildAST.size(); i++) {
-            if (tempBuildAST.get(i) != "") {
-                buildAST.add(new ASTNode(tempBuildAST.get(i), null, null, null));
+        // initializing buildAST arraylist from the parsed simple expression; contains AST nodes
+        for (String s : tempBuildAST) {
+            if (!s.equals("")) {
+                buildAST.add(new ASTNode(s, null, null, null));
             }
         }
 
+         // while buildAST array is not empty, keep iterating through buildAST
          while (!(buildAST.isEmpty())) {
              for (int i = 0; i < buildAST.size(); i++) {
+                 // check if simple expressions has parentheses; if so, check if there are operators in between and build the tree
                  if (containsParentheses(buildAST)) {
                      if (buildAST.get(i).value.equals("+") || buildAST.get(i).value.equals("-") || buildAST.get(i).value.equals("*") ||
                          buildAST.get(i).value.equals("/")) {
                          if (!(buildAST.get(i + 1).value.equals(")")) && !(buildAST.get(i - 1).value.equals("("))) {
+                             // build tree by setting pointers
                              buildASTNode(astIRNodes, buildAST, i);
 
+                             // remove variable/number characters since they are already set
                              buildAST.remove(i + 1);
                              buildAST.remove(i - 1);
                          } else if ((buildAST.get(i + 1).value.equals(")")) && (buildAST.get(i - 1).value.equals("("))) {
+                             // remove parentheses characters
                              buildAST.remove(i + 1);
                              buildAST.remove(i - 1);
                          }
                      }
                  } else {
+                     // (no parentheses) check for operators and build the tree
                      if (buildAST.get(i).value.equals("+") || buildAST.get(i).value.equals("-") || buildAST.get(i).value.equals("*") ||
                          buildAST.get(i).value.equals("/")) {
+                         // build tree by setting pointers
                          buildASTNode(astIRNodes, buildAST, i);
 
+                         // remove variable/number characters since they are already set
                          buildAST.remove(i + 1);
                          buildAST.remove(i - 1);
                      } else if (buildAST.size() == 3 && buildAST.get(i).value.equals(":=")) {
-                                buildASTNode(astIRNodes, buildAST, i);
+                         // build tree by setting pointers
+                         buildASTNode(astIRNodes, buildAST, i);
 
+                         // remove variable/number characters since they are already set
                          buildAST.remove(i + 1);
                          buildAST.remove(i - 1);
                      }
                  }
              }
 
+             // remove final character; all characters of expressions has been processes; exit while loop
              for (int i = 0; i < buildAST.size(); i++) {
                  if (buildAST.size() == 1 && buildAST.get(i).value.equals(":=")) {
                      buildAST.remove(i);
@@ -241,7 +260,7 @@ public class Listener extends LittleBaseListener {
         }
     }
 
-    // function that extracts variables from Read statements
+    // listener function that extracts variables from Read statements
     public void enterRead_stmt(LittleParser.Read_stmtContext ctx) {
         ArrayList<String> tempReadAST = new ArrayList<>();
 
@@ -251,7 +270,7 @@ public class Listener extends LittleBaseListener {
        readWriteStmts(tempReadAST, "READ");
     }
 
-    // function that extracts variables from Write statements
+    // listener function that extracts variables from Write statements
     public void enterWrite_stmt(LittleParser.Write_stmtContext ctx) {
         ArrayList<String> tempWriteAST = new ArrayList<>();
 
@@ -271,9 +290,10 @@ public class Listener extends LittleBaseListener {
             }
         }
 
-        for (int i = 0; i < astIRNodes.size(); i++) {
-            if (astIRNodes.get(i).irCode != null) {
-               threeAddressCode.add(astIRNodes.get(i).irCode.split(" "));
+        // splitting 3AC into separate strings and storing them in an arraylist of String arrays
+        for (ASTNode astIRNode : astIRNodes) {
+            if (astIRNode.irCode != null) {
+                threeAddressCode.add(astIRNode.irCode.split(" "));
             }
         }
 
@@ -287,21 +307,21 @@ public class Listener extends LittleBaseListener {
         }
     }
 
-    // functions that prints out code generation
+    // function that prints out code generation
     public void printGeneratedCode() {
         System.out.println(";IR code");
         System.out.println(astIRNodes.get(0).value);
         System.out.println(";LINK");
-        for (int i = 0; i < astIRNodes.size(); i++) {
-            if (astIRNodes.get(i).irCode != null) {
-                System.out.println(astIRNodes.get(i).irCode);
+        for (ASTNode astIRNode : astIRNodes) {
+            if (astIRNode.irCode != null) {
+                System.out.println(astIRNode.irCode);
             }
         }
         System.out.println(";RET");
         System.out.println(";tiny code");
 
-        for (int i = 0; i < tinyAssemblyCode.size(); i++) {
-            System.out.println(tinyAssemblyCode.get(i));
+        for (String s : tinyAssemblyCode) {
+            System.out.println(s);
         }
 
         System.out.println("sys halt");
@@ -309,12 +329,10 @@ public class Listener extends LittleBaseListener {
 
     // helper function that transfers final parsed simple expressions into an arraylist
     private void parserHelper(String[] temp, ArrayList<String> tempBuildAST) {
-        for (int i = 0; i < temp.length; i++) {
-            tempBuildAST.add(temp[i]);
-        }
+        Collections.addAll(tempBuildAST, temp);
     }
 
-    // helper function that assembles AST nodes and inserts into the "astIRNodes" arraylist
+    // helper function that assembles AST nodes into trees and inserts into the "astIRNodes" arraylist
     private void buildASTNode(ArrayList<ASTNode> astIRNodes, ArrayList<ASTNode> buildAST, int i) {
         String add = "ADDI";
         String sub = "SUBI";
@@ -365,6 +383,8 @@ public class Listener extends LittleBaseListener {
                 }
                 tempRegister++;
                 break;
+            default:
+                break;
         }
     }
 
@@ -388,8 +408,8 @@ public class Listener extends LittleBaseListener {
     private boolean containsParentheses(ArrayList<ASTNode> buildAST) {
         int parenthesesCount = 0;
 
-        for (int i = 0; i < buildAST.size(); i++) {
-            if (buildAST.get(i).value.equals("(") || buildAST.get(i).value.equals(")")) {
+        for (ASTNode astNode : buildAST) {
+            if (astNode.value.equals("(") || astNode.value.equals(")")) {
                 parenthesesCount++;
             }
 
@@ -404,8 +424,8 @@ public class Listener extends LittleBaseListener {
     private boolean containsFloatNum(ArrayList<ASTNode> buildAST) {
         int decimalCount = 0;
 
-        for (int i = 0; i < buildAST.size(); i++) {
-            if (buildAST.get(i).value.contains(".")) {
+        for (ASTNode astNode : buildAST) {
+            if (astNode.value.contains(".")) {
                 decimalCount++;
             }
 
@@ -427,10 +447,7 @@ public class Listener extends LittleBaseListener {
         Pattern pattern = Pattern.compile("(\\.)?[0-9]\\d*(\\.\\d+)?");
         Matcher matcher = pattern.matcher(value);
 
-        if (matcher.find()) {
-            return true;
-        }
-        return false;
+        return matcher.find();
     }
 
     // helper function that updates IRCode of right child if value is a constant
@@ -449,15 +466,21 @@ public class Listener extends LittleBaseListener {
 
     // helper function that handles the proper "READ" or "WRITE" command based on the variable's type
     private void readWriteStmts(ArrayList<String> tempWriteAST, String stmtType) {
-        for (int i = 0; i < tempWriteAST.size(); i++) {
+        for (String s : tempWriteAST) {
             for (Map.Entry<String, Node> entry : globalHT.entrySet()) {
-                if (tempWriteAST.get(i).equals(entry.getValue().name)) {
-                    if (entry.getValue().type.equals("INT")) {
-                        astIRNodes.add(new ASTNode(tempWriteAST.get(i), null, null,   ";" + stmtType + "I " + tempWriteAST.get(i)));
-                    } else if (entry.getValue().type.equals("FLOAT")) {
-                        astIRNodes.add(new ASTNode(tempWriteAST.get(i), null, null, ";" + stmtType + "F " + tempWriteAST.get(i)));
-                    } else if (entry.getValue().type.equals("STRING")) {
-                        astIRNodes.add(new ASTNode(tempWriteAST.get(i), null, null, ";" + stmtType + "S " + tempWriteAST.get(i)));
+                if (s.equals(entry.getValue().name)) {
+                    switch (entry.getValue().type) {
+                        case "INT":
+                            astIRNodes.add(new ASTNode(s, null, null, ";" + stmtType + "I " + s));
+                            break;
+                        case "FLOAT":
+                            astIRNodes.add(new ASTNode(s, null, null, ";" + stmtType + "F " + s));
+                            break;
+                        case "STRING":
+                            astIRNodes.add(new ASTNode(s, null, null, ";" + stmtType + "S " + s));
+                            break;
+                        default:
+                            break;
                     }
                 }
             }
@@ -485,6 +508,8 @@ public class Listener extends LittleBaseListener {
             case ";READS":
                 tinyAssemblyCode.add("sys reads " + threeAddressCode.get(i)[1]);
                 break;
+            default:
+                break;
         }
     }
 
@@ -496,7 +521,7 @@ public class Listener extends LittleBaseListener {
                 expr = expressionOperator(";ADDI", "addi", "addr", i);
 
                 simpleExpressionCases(expr, i);
-                optimize((i + 1), 2);
+                optimize((i + 1));
 
                 register++;
                 break;
@@ -505,7 +530,7 @@ public class Listener extends LittleBaseListener {
                 expr = expressionOperator(";SUBI", "subi", "subr", i);
 
                 simpleExpressionCases(expr, i);
-                optimize((i + 1), 2);
+                optimize((i + 1));
 
                 register++;
                 break;
@@ -514,7 +539,7 @@ public class Listener extends LittleBaseListener {
                 expr = expressionOperator(";MULTI", "muli", "mulr", i);
 
                 simpleExpressionCases(expr, i);
-                optimize((i + 1), 2);
+                optimize((i + 1));
 
                 register++;
                 break;
@@ -523,7 +548,7 @@ public class Listener extends LittleBaseListener {
                 expr = expressionOperator(";DIVI", "divi", "divr", i);
 
                 simpleExpressionCases(expr, i);
-                optimize((i + 1), 2);
+                optimize((i + 1));
 
                 register++;
                 break;
@@ -550,16 +575,15 @@ public class Listener extends LittleBaseListener {
                         expr = "subr ";
                     }
 
-                    tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + "r" + register);
-                    register++;
-
                     tinyAssemblyCode.add("move " + threeAddressCode.get(i)[3] + " " + "r" + register);
-                    tinyAssemblyCode.add(expr + "r" + (register - 1) + " " + "r" + register);
+                    tinyAssemblyCode.add(expr + threeAddressCode.get(i)[1] + " " + "r" + register);
                     tinyAssemblyCode.add("move " + "r" + register + " " + threeAddressCode.get(i + 1)[2]);
 
-                    optimize((i + 1), 2);
+                    optimize((i + 1));
                     register++;
                 }
+                break;
+            default:
                 break;
             }
     }
@@ -615,12 +639,12 @@ public class Listener extends LittleBaseListener {
     }
 
     // helper function that checks if variables/registers are being tracked for code optimization
-    private void optimize(int i, int j) {
-        if (!trackRegister.contains("r" + register) && !trackVariables.contains(threeAddressCode.get(i)[j])) {
+    private void optimize(int i) {
+        if (!trackRegister.contains("r" + register) && !trackVariables.contains(threeAddressCode.get(i)[2])) {
             trackRegister.add("r" + register);
-            trackVariables.add(threeAddressCode.get(i)[j]);
-        } else if (trackRegister.contains("r" + register) && !trackVariables.contains(threeAddressCode.get(i)[j])) {
-            trackVariables.set(trackRegister.indexOf("r" + register), threeAddressCode.get(i)[j]);
+            trackVariables.add(threeAddressCode.get(i)[2]);
+        } else if (trackRegister.contains("r" + register) && !trackVariables.contains(threeAddressCode.get(i)[2])) {
+            trackVariables.set(trackRegister.indexOf("r" + register), threeAddressCode.get(i)[2]);
         }
     }
 
