@@ -553,7 +553,14 @@ public class Listener extends LittleBaseListener {
             case ";STOREF":
             case ";STOREI":
                 if (threeAddressCode.get(i).length == 5) {
-                    tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + threeAddressCode.get(i)[4]);
+                    if (threeAddressCode.get(i)[1].matches("([a-zA-Z]+)|([a-zA-Z]+[0-9]+)")) {
+                        tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + "r" + register);
+                        tinyAssemblyCode.add("move " + "r" + register + " " + threeAddressCode.get(i)[4]);
+
+                        register++;
+                    } else {
+                        tinyAssemblyCode.add("move " + threeAddressCode.get(i)[1] + " " + threeAddressCode.get(i)[4]);
+                    }
                 } else if (threeAddressCode.get(i).length > 5) {
                     if (threeAddressCode.get(i)[2].contains(";DIVF")) {
                         expr = "divr ";
