@@ -435,9 +435,7 @@ public class Listener extends LittleBaseListener {
         }
 
         for (Map.Entry<String, Node> entry : globalHT.entrySet()) {
-            if (entry.getValue().type.equals("FLOAT")) {
-                return true;
-            }
+            return entry.getValue().type.equals("FLOAT");
         }
         return false;
     }
@@ -575,9 +573,15 @@ public class Listener extends LittleBaseListener {
                         expr = "subr ";
                     }
 
-                    tinyAssemblyCode.add("move " + threeAddressCode.get(i)[3] + " " + "r" + register);
-                    tinyAssemblyCode.add(expr + threeAddressCode.get(i)[1] + " " + "r" + register);
-                    tinyAssemblyCode.add("move " + "r" + register + " " + threeAddressCode.get(i + 1)[2]);
+                    if (threeAddressCode.get(i)[3].contains("$T")) {
+                        tinyAssemblyCode.add("move " + threeAddressCode.get(i)[4] + " " + "r" + register);
+                        tinyAssemblyCode.add(expr + threeAddressCode.get(i)[1] + " " + "r" + register);
+                        tinyAssemblyCode.add("move " + "r" + register + " " + threeAddressCode.get(i + 1)[2]);
+                    } else {
+                        tinyAssemblyCode.add("move " + threeAddressCode.get(i)[3] + " " + "r" + register);
+                        tinyAssemblyCode.add(expr + threeAddressCode.get(i)[1] + " " + "r" + register);
+                        tinyAssemblyCode.add("move " + "r" + register + " " + threeAddressCode.get(i + 1)[2]);
+                    }
 
                     optimize((i + 1));
                     register++;
