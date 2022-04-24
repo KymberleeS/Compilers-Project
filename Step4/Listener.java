@@ -1,15 +1,15 @@
 /**
  * The Listener.java extends the LittleBaseListener and implements several of
- * the empty methods pre-generated from ANTLR4. This listener creates a hash table
- * for each scope of the program and pushes them onto the stack. Within each scope
- * any variables are added to the scopes hash table, which acts as a symbol table.
- * The values inserted into the table are stored as nodes which contains three
- * string variables: name, type, value. The tables are then able to be printed
- * with the printHashTableValues() method.
+ * the empty methods pre-generated from ANTLR4. This listener processes simple
+ * expressions by parsing them and taking the needed characters from the string to create
+ * a syntax tree, implemented with a node class. The syntax trees are processed, and are
+ * first converted into 3AC and then into TINY assembly. Optimization is then performed by
+ * tracking variables and their associated registers. The generated code is then able
+ * to be printed with the printGeneratedCode() method.
  * 
  * @author  Kymberlee Sables, Harrison Wine
- * @version step3
- * @since   3/08/2022
+ * @version step4
+ * @since   4/24/2022
  */
 
 import java.util.*;
